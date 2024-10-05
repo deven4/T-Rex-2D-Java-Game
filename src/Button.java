@@ -131,7 +131,7 @@ public class Button extends JComponent implements Inputs.mouseListener {
         }
     }
 
-    interface onClickListener {
+    public interface onClickListener {
         void onClick();
     }
 }

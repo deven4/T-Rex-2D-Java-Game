@@ -1,20 +1,17 @@
 import javax.swing.*;
-import java.awt.*;
 
 public class Game extends JFrame implements Runnable {
 
     public static final int WIDTH = 1000;
     public static final int HEIGHT = 600;
     public static final int FPS = 120;
-    public static final Font FONT = new Font("WC Mano Negra Bta", Font.BOLD, 45);
 
     public enum Menu {
         MAIN, OPTIONS
     }
 
-    private Thread thread;
     private boolean isGameOver;
-    private GamePanel gamePanel;
+    private final GamePanel gamePanel;
 
     public Game() {
         gamePanel = new GamePanel();
@@ -32,7 +29,7 @@ public class Game extends JFrame implements Runnable {
     }
 
     private void startGame() {
-        thread = new Thread(this);
+        Thread thread = new Thread(this);
         thread.start();
     }
 
