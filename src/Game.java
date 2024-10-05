@@ -12,7 +12,6 @@ public class Game extends JFrame implements Runnable {
         MAIN, OPTIONS
     }
 
-
     private Thread thread;
     private boolean isGameOver;
     private GamePanel gamePanel;
@@ -38,12 +37,8 @@ public class Game extends JFrame implements Runnable {
     }
 
     private void stopGame() {
-        thread.stop();
+//        thread.stop();
         isGameOver = true;
-    }
-
-    public static void main(String[] args) {
-        new Game();
     }
 
     @Override
@@ -69,5 +64,9 @@ public class Game extends JFrame implements Runnable {
                 frames = 0;
             }
         }
+    }
+
+    public static void main(String[] args) {
+        new Game();
     }
 }

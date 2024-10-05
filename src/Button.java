@@ -1,12 +1,13 @@
 import Utils.Inputs;
 
+import javax.swing.*;
 import java.awt.*;
 
-public class Button implements Inputs.mouseListener {
+public class Button extends JComponent implements Inputs.mouseListener {
 
     private String text;
     private Point coordinates;
-    private GamePanel gamePanel;
+    private final Font font;
     private final FontMetrics fontMetrics;
     private onClickListener onClickListener;
 
@@ -19,17 +20,17 @@ public class Button implements Inputs.mouseListener {
     private boolean isVisible;
     private final Font hoveredFont;
 
-    public Button(GamePanel gamePanel, String text, Point coordinates, FontMetrics fontMetrics) {
+    public Button(GamePanel gamePanel, String text, Point coordinates, Font font) {
         this.text = text;
-        this.gamePanel = gamePanel;
+        this.font = font;
+        this.fontMetrics = getFontMetrics(font);
         this.coordinates = coordinates;
-        this.fontMetrics = fontMetrics;
         Inputs input = new Inputs(null, this);
-        this.gamePanel.addMouseListener(input);
-        this.gamePanel.addMouseMotionListener(input);
+        gamePanel.addMouseListener(input);
+        gamePanel.addMouseMotionListener(input);
         this.animationX = Game.WIDTH;
         this.animationSpeed = 8;
-        this.hoveredFont = new Font(Game.FONT.getName(), Game.FONT.getStyle(), 50);
+        this.hoveredFont = font.deriveFont(50f);
     }
 
     public String getText() {
@@ -64,7 +65,7 @@ public class Button implements Inputs.mouseListener {
         this.onClickListener = onClickListener;
     }
 
-    public int getAscend() {
+    private int getAscend() {
         return fontMetrics.getAscent();
     }
 
@@ -73,6 +74,7 @@ public class Button implements Inputs.mouseListener {
     }
 
     public void draw(Graphics graphics) {
+        graphics.setFont(font);
         if (!isAnimOver) {
             if (animationX <= coordinates.x - 40) {
                 animationX = coordinates.x;
@@ -84,7 +86,7 @@ public class Button implements Inputs.mouseListener {
                 graphics.setFont(hoveredFont);
             } else {
                 graphics.setColor(Color.BLACK);
-                graphics.setFont(Game.FONT);
+                graphics.setFont(font);
             }
         }
         if (isHidden) {
