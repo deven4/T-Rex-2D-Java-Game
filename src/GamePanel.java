@@ -1,11 +1,11 @@
 import Utils.GameFont;
+import Utils.GameLabel;
 import Utils.Inputs;
+import Utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
 
 public class GamePanel extends JPanel implements Inputs.Listener {
 
@@ -17,6 +17,7 @@ public class GamePanel extends JPanel implements Inputs.Listener {
             btnBack, btnMusicOn, btnMusicOff, btnMusic;
     private Font btnFont;
     private BufferedImage forestImg;
+    private GameLabel lblStart;
 
     private int dinoImgIdx;
     private int currState;
@@ -25,8 +26,11 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     private int[] forestX;
     private int dinoY;
     private int forestSpeed = 1;
-    private int textX, textY;
+    private int btnX, btnY;
+    private int gameSpeed;
 
+    private boolean isPlayPressed;
+    private boolean isGameOver;
     private boolean isGameStarted;
 
     public GamePanel() {
@@ -34,12 +38,13 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     }
 
     private void Initialise() {
+        gameSpeed = 1;
         animationSpeed = 12;
         forestX = new int[2];
         currState = Dino.IDLE;
         dinoY = Dino.Y_COORDINATE;
-        textX = (int) (Game.WIDTH - Game.WIDTH * 0.40); // subtracting 40% from the gameBoard width
-        textY = (int) (Game.HEIGHT - Game.HEIGHT * 0.80);
+        btnX = (int) (Game.WIDTH - Game.WIDTH * 0.40); // subtracting 40% from the gameBoard width
+        btnY = (int) (Game.HEIGHT - Game.HEIGHT * 0.80);
 
         initClasses();
 
@@ -58,15 +63,17 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         forestImg = forest.getBufferedImage()[0];
         forestX[1] = forestX[0] + forestImg.getWidth();
 
+        lblStart = new GameLabel("Press space bar to start", Game.WIDTH / 2 - 150, 150);
+
         /* Buttons */
-        btnPlay = new Button(this, "PLAY", new Point(textX, textY), btnFont);
-        btnOptions = new Button(this, "OPTIONS", new Point(textX, textY + 80), btnFont);
-        btnExit = new Button(this, "EXIT", new Point(textX, textY + 160), btnFont);
+        btnPlay = new Button(this, "PLAY", new Point(btnX, btnY), btnFont);
+        btnOptions = new Button(this, "OPTIONS", new Point(btnX, btnY + 80), btnFont);
+        btnExit = new Button(this, "EXIT", new Point(btnX, btnY + 160), btnFont);
 
         /* Options menu */
-        btnBack = new Button(this, "< BACK", new Point(textX - 120, textY), btnFont);
-        btnSound = new Button(this, "SOUND", new Point(textX - 100, textY + 80), btnFont);
-        Point ptMusicOn = new Point(textX - 80 + btnSound.getWidth(), textY + 80);
+        btnBack = new Button(this, "< BACK", new Point(btnX - 120, btnY), btnFont);
+        btnSound = new Button(this, "SOUND", new Point(btnX - 100, btnY + 80), btnFont);
+        Point ptMusicOn = new Point(btnX - 80 + btnSound.getWidth(), btnY + 80);
         btnMusicOn = new Button(this, "<", ptMusicOn, gameFont.getBananaYeti());
         btnMusic = new Button(this, "ON", new Point(btnMusicOn.getCoordinates().x + 40,
                 btnMusicOn.getCoordinates().y), btnFont);
@@ -78,7 +85,13 @@ public class GamePanel extends JPanel implements Inputs.Listener {
 
         showMenu(Game.Menu.MAIN);
 
-        btnPlay.setListener(this::startGame);
+        btnPlay.setListener(() -> {
+            showMenu(Game.Menu.NOMENU);
+            Utils.setTimeout(() -> {
+                isPlayPressed = true;
+                startGame();
+            }, 200);
+        });
         btnOptions.setListener(() -> {
             showMenu(Game.Menu.OPTIONS);
         });
@@ -99,14 +112,7 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     }
 
     private void startGame() {
-        btnPlay.setAnimationSpeed(20);
-        btnOptions.setAnimationSpeed(20);
-        btnExit.setAnimationSpeed(20);
-
-        btnPlay.hide(true);
-        btnOptions.hide(true);
-        btnExit.hide(true);
-
+        lblStart.show(true);
         isGameStarted = true;
         currState = Dino.WALKING;
     }
@@ -127,12 +133,13 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     }
 
     private void drawText(Graphics g) {
+        lblStart.draw(g);
+
         btnBack.draw(g);
         btnSound.draw(g);
         btnMusicOn.draw(g);
         btnMusic.draw(g);
         btnMusicOff.draw(g);
-
         btnPlay.draw(g);
         btnOptions.draw(g);
         btnExit.draw(g);
@@ -169,7 +176,7 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     }
 
     private void moveDino() {
-        if (dinoY <= 200) dinoY = Dino.Y_COORDINATE;
+        if (dinoY <= 180) dinoY = Dino.Y_COORDINATE;
         if (currState == Dino.JUMPING && dinoImgIdx > 3) {
             dinoY -= 1;
         }
@@ -209,12 +216,22 @@ public class GamePanel extends JPanel implements Inputs.Listener {
                 btnMusic.hide(false);
                 btnMusicOff.hide(false);
             }
+            case NOMENU -> {
+                btnOptions.hide(true);
+                btnPlay.hide(true);
+                btnExit.hide(true);
+                btnSound.hide(true);
+                btnBack.hide(true);
+                btnMusicOn.hide(true);
+                btnMusic.hide(true);
+                btnMusicOff.hide(true);
+            }
         }
     }
 
     @Override
     public void onUpPressed(int value) {
-        List<String> hello = new ArrayList<>();
+       /* List<String> hello = new ArrayList<>();
 
         if (currState == Dino.WALKING) {
             currState = Dino.RUNNING;
@@ -225,14 +242,22 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         }
 
         dinoImgIdx = 0;
+        */
     }
 
     @Override
     public void onSpaceBarPressed() {
+        if (isPlayPressed) {
+            isPlayPressed = false;
+            gameSpeed = gameSpeed + 1;
+            lblStart.show(false);
+        }
+        if (!isGameStarted || isGameOver) return;
+
         if (currState != Dino.JUMPING) {
             currState = Dino.JUMPING;
             dinoImgIdx = 0;
-            forestSpeed = 1;
+            forestSpeed = gameSpeed;
         }
     }
 }

@@ -7,7 +7,7 @@ public class Game extends JFrame implements Runnable {
     public static final int FPS = 120;
 
     public enum Menu {
-        MAIN, OPTIONS
+        MAIN, OPTIONS, NOMENU
     }
 
     private boolean isGameOver;
