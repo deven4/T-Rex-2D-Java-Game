@@ -4,7 +4,7 @@ import java.awt.event.*;
 
 import static Utils.Constants.unitSize;
 
-public record Inputs(Utils.Inputs.Listener mListener, Inputs.mouseListener mouseListener)
+public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListener)
         implements KeyListener, MouseListener, MouseMotionListener {
 
     @Override
@@ -14,13 +14,13 @@ public record Inputs(Utils.Inputs.Listener mListener, Inputs.mouseListener mouse
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (mListener == null) return;
+        if (keyboardListener == null) return;
         switch (e.getKeyCode()) {
             case KeyEvent.VK_W -> {
-                mListener.onUpPressed(-unitSize);
+                keyboardListener.onUpPressed(-unitSize);
             }
             case KeyEvent.VK_SPACE -> {
-                mListener.onSpaceBarPressed();
+                keyboardListener.onSpaceBarPressed();
             }
         }
     }

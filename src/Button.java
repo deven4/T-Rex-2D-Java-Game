@@ -1,5 +1,7 @@
+import Utils.GameSound;
 import Utils.Inputs;
 
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 
@@ -19,6 +21,10 @@ public class Button extends JComponent implements Inputs.mouseListener {
     private boolean isPlainText;
     private boolean isVisible;
     private final Font hoveredFont;
+    private final Clip btnHoverClip;
+    private boolean isMusicPlaying;
+
+    private int counter;
 
     public Button(GamePanel gamePanel, String text, Point coordinates, Font font) {
         this.text = text;
@@ -31,6 +37,7 @@ public class Button extends JComponent implements Inputs.mouseListener {
         this.animationX = Game.WIDTH;
         this.animationSpeed = 8;
         this.hoveredFont = font.deriveFont(50f);
+        this.btnHoverClip = GameSound.getInstance().getBtnHoverClipSound();
     }
 
     public String getText() {
@@ -82,9 +89,20 @@ public class Button extends JComponent implements Inputs.mouseListener {
             } else animationX -= animationSpeed;
         } else {
             if (isHovered) {
+                if (!isMusicPlaying) {
+                    btnHoverClip.setFramePosition(0);
+                    btnHoverClip.start();
+                    isMusicPlaying = true;
+                }
                 graphics.setColor(Color.RED);
                 graphics.setFont(hoveredFont);
+                counter += 1;
             } else {
+                if (isMusicPlaying) {
+                    btnHoverClip.stop();
+                    btnHoverClip.setFramePosition(0);
+                    isMusicPlaying = false;
+                }
                 graphics.setColor(Color.BLACK);
                 graphics.setFont(font);
             }
@@ -112,7 +130,6 @@ public class Button extends JComponent implements Inputs.mouseListener {
     private boolean isClickInsideRect(int mouseX, int mouseY) {
         Rectangle rectangle = new Rectangle(coordinates.x, coordinates.y,
                 fontMetrics.stringWidth(text), fontMetrics.getAscent());
-
         return rectangle.contains(mouseX, mouseY);
     }
 
