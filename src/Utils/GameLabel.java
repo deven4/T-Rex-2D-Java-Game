@@ -1,21 +1,28 @@
 package Utils;
 
+import javax.swing.*;
 import java.awt.*;
 
-public class GameLabel {
+public class GameLabel extends JLabel {
 
-    private final int locX;
-    private final int locY;
+    private int locX;
+    private int locY;
     private int counter;
     private String text;
     private boolean isVisible;
     private final GameFont gameFont;
 
+    public GameLabel(String text) {
+        super(text);
+        this.gameFont = GameFont.getInstance();
+        setFont(gameFont.getSuperDream());
+    }
+
     public GameLabel(String text, int locX, int locY) {
         this.text = text;
         this.locX = locX;
         this.locY = locY;
-        this.gameFont = new GameFont();
+        this.gameFont = GameFont.getInstance();
     }
 
     public void draw(Graphics graphics) {

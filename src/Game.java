@@ -1,16 +1,11 @@
+import Utils.GameConfig;
+
 import javax.swing.*;
 
 public class Game extends JFrame implements Runnable {
 
-    public static final int WIDTH = 1000;
-    public static final int HEIGHT = 600;
-    public static final int FPS = 120;
-
-    public enum Menu {
-        MAIN, OPTIONS, NOMENU
-    }
-
-    private boolean isGameOver;
+    public static boolean isGameOver;
+    public static boolean isGamePaused;
     private final GamePanel gamePanel;
 
     public Game() {
@@ -34,7 +29,6 @@ public class Game extends JFrame implements Runnable {
     }
 
     private void stopGame() {
-//        thread.stop();
         isGameOver = true;
     }
 
@@ -44,14 +38,14 @@ public class Game extends JFrame implements Runnable {
         long currNano;
         int frames = 0;
         long lastFrame = System.nanoTime();
-        double timePerFrame = 1000000000.0 / FPS;
+        double timePerFrame = 1000000000.0 / GameConfig.FPS;
         long lastTimeInMillis = System.currentTimeMillis();
 
         while (!isGameOver) {
             currNano = System.nanoTime();
             if (currNano - lastFrame >= timePerFrame) {
                 frames++;
-                gamePanel.repaint();
+                if (!isGamePaused) gamePanel.repaint();
                 lastFrame = currNano;
             }
 

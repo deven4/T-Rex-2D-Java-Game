@@ -2,8 +2,6 @@ package Utils;
 
 import java.awt.event.*;
 
-import static Utils.Constants.unitSize;
-
 public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListener)
         implements KeyListener, MouseListener, MouseMotionListener {
 
@@ -17,11 +15,10 @@ public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListen
         if (keyboardListener == null) return;
         switch (e.getKeyCode()) {
             case KeyEvent.VK_W -> {
-                keyboardListener.onUpPressed(-unitSize);
+                //keyboardListener.onUpPressed(-unitSize);
             }
-            case KeyEvent.VK_SPACE -> {
-                keyboardListener.onSpaceBarPressed();
-            }
+            case KeyEvent.VK_SPACE -> keyboardListener.onSpaceBarPressed();
+            case KeyEvent.VK_ESCAPE -> keyboardListener.onEscapeKeyPressed();
         }
     }
 
@@ -69,6 +66,8 @@ public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListen
         void onUpPressed(int value);
 
         void onSpaceBarPressed();
+
+        void onEscapeKeyPressed();
     }
 
     public interface mouseListener {

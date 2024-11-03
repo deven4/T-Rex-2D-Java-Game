@@ -1,3 +1,5 @@
+import Utils.GameConfig;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -18,7 +20,7 @@ public class Dino {
     public static final int NUM_STATES = 4;
     public static final int MAX_IMAGES_PER_STATE = 12;
 
-    public static final int X_COORDINATE = Game.WIDTH/4;
+    public static final int X_COORDINATE = GameConfig.WIDTH / 4;
     public static final int Y_COORDINATE = 380;
 
     private final int[][] stateLength;
