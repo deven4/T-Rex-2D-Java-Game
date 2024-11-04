@@ -15,6 +15,7 @@ public class Animate implements ActionListener {
     private final JComponent widget;
     private final int animation;
     private boolean isHide;
+    private int counter;
 
     public Animate(JComponent widget, int animationToPlay) {
         this.widget = widget;
@@ -27,7 +28,9 @@ public class Animate implements ActionListener {
     public void start() {
         switch (animation) {
             case SLIDE_RIGHT -> widget.setLocation(GameConfig.WIDTH, GameConfig.HEIGHT);
-            case SLIDE_DOWN -> widget.setLocation(widget.getX(), GameConfig.HEIGHT);
+            case SLIDE_DOWN -> {
+                widget.setLocation(widget.getX(), GameConfig.HEIGHT);
+            }
         }
         timer.start();
     }
@@ -45,7 +48,7 @@ public class Animate implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         int currentX = widget.getX();
         int currentY = widget.getY();
-//        System.out.println(currentY + "," + widget.getBounds().y);
+
         if (isHide) {
             if (currentX < GameConfig.WIDTH) {
                 widget.setLocation(currentX + 15, finalY);
@@ -58,16 +61,25 @@ public class Animate implements ActionListener {
 
         switch (animation) {
             case SLIDE_DOWN -> {
-                System.out.println(currentY + "," + finalY);
-                for (int i = 0; i < widget.getComponents().length; i++) {
-                    JLabel lbl = (JLabel) widget.getComponents()[i];
-                    currentY = lbl.getY() - 1;
-                    if (currentY + lbl.getHeight() < 0) {
-                        // If label is out of view at the top, reset it to the bottom
-                        currentY = GameConfig.HEIGHT;
-                    }
-                    lbl.setLocation(lbl.getX(), currentY);
+                if (counter >= widget.getComponents().length) counter = 0;
+
+                if (currentY + widget.getHeight() < 0) {
+                    currentY = GameConfig.HEIGHT;
                 }
+                widget.setLocation(finalX, currentY - 2);
+
+//                else {
+//                    JLabel lbl = (JLabel) widget.getComponents()[counter];
+//                    currentY = lbl.getY() - 10;
+//                    if(lbl.getText() == "Lead UI/UX Game Designer")
+//                        System.out.println(lbl.getText() + " = " + currentY);
+//                    if (currentY + lbl.getHeight() < 0) {
+//                        // If label is out of view at the top, reset it to the bottom
+//                        currentY = GameConfig.HEIGHT;
+//                    }
+//                    lbl.setLocation(lbl.getX(), currentY);
+//                    counter += 1;
+//                }
             }
             case SLIDE_RIGHT -> {
                 if (currentX > (finalX - 40)) {
