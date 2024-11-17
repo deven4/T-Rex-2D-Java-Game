@@ -22,7 +22,7 @@ public class Animate implements ActionListener {
         this.animation = animationToPlay;
         this.finalX = widget.getX();
         this.finalY = widget.getY();
-        timer = new Timer(1, this);
+        timer = new Timer(2, this);
     }
 
     public void start() {
