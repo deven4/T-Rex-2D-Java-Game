@@ -8,16 +8,14 @@ import java.awt.*;
 
 public class GameMenuPanel extends JPanel {
 
-    int btnX, btnY;
-    GameButton btnPlay;
-    GameButton btnResume;
-    GameButton btnOptions;
-    GameButton btnExit;
-    GameFont gameFont;
-    GamePanel gamePanel;
-    JPanel mainMenuPanel;
-    JPanel optionsMenuPanel;
-    Animate menuPanelAnimation;
+    private GameButton btnPlay;
+    private GameButton btnResume;
+    private final GameFont gameFont;
+    private final GamePanel gamePanel;
+    private JPanel mainMenuPanel;
+    private JPanel optionsMenuPanel;
+    private final Animate menuPanelAnimation;
+    private boolean isMenuVisible;
 
     GameMenuPanel(GamePanel gamePanel) {
         super();
@@ -27,8 +25,6 @@ public class GameMenuPanel extends JPanel {
         setBackground(Color.LIGHT_GRAY);
         this.gamePanel = gamePanel;
         gameFont = GameFont.getInstance();
-        btnX = (int) (GameConfig.WIDTH - GameConfig.WIDTH * 0.40); // subtracting 40% from the gameBoard width
-        btnY = (int) (GameConfig.HEIGHT - GameConfig.HEIGHT * 0.80) + 20;
 
         buildMainMenuPanel();
         buildOptionMenuPanel();
@@ -44,8 +40,8 @@ public class GameMenuPanel extends JPanel {
 
         btnPlay = new GameButton("PLAY");
         btnResume = new GameButton("RESUME");
-        btnOptions = new GameButton("OPTIONS");
-        btnExit = new GameButton("EXIT");
+        GameButton btnOptions = new GameButton("OPTIONS");
+        GameButton btnExit = new GameButton("EXIT");
         btnResume.setVisible(false);
 
         /* Add buttons to mainMenuPanel */
@@ -211,6 +207,8 @@ public class GameMenuPanel extends JPanel {
     }
 
     private void recalculateSize() {
+        int btnX = (int) (GameConfig.WIDTH - GameConfig.WIDTH * 0.40); // subtracting 40% from the gameBoard width
+        int btnY = (int) (GameConfig.HEIGHT - GameConfig.HEIGHT * 0.80) + 20;
         optionsMenuPanel.setSize((int) optionsMenuPanel.getPreferredSize().getWidth(), (int) optionsMenuPanel.getPreferredSize().getHeight());
         int width = Math.max(mainMenuPanel.getX() + mainMenuPanel.getWidth(), optionsMenuPanel.getX() + optionsMenuPanel.getWidth());
         int height = Math.max(mainMenuPanel.getY() + mainMenuPanel.getHeight(), optionsMenuPanel.getY() + optionsMenuPanel.getHeight());
@@ -229,26 +227,35 @@ public class GameMenuPanel extends JPanel {
             case MAIN -> {
                 mainMenuPanel.setVisible(true);
                 optionsMenuPanel.setVisible(false);
+                isMenuVisible = true;
             }
             case OPTIONS -> {
                 mainMenuPanel.setVisible(false);
                 optionsMenuPanel.setVisible(true);
+                isMenuVisible = true;
             }
             case NOMENU -> {
                 menuPanelAnimation.hide();
+                isMenuVisible = false;
             }
             case PAUSE -> {
                 btnPlay.setVisible(false);
                 btnResume.setVisible(true);
                 mainMenuPanel.setVisible(true);
                 menuPanelAnimation.start();
+                isMenuVisible = true;
             }
             case RESUME -> {
                 btnPlay.setVisible(true);
                 btnResume.setVisible(false);
                 menuPanelAnimation.hide();
+                isMenuVisible = false;
             }
         }
+    }
+
+    public boolean isMenuVisible() {
+        return isMenuVisible;
     }
 
     public enum Menu {
