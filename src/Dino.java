@@ -44,13 +44,13 @@ public class Dino {
     }
 
     private void loadImage(String directory, int state) throws Exception {
-        URL urlResources = getClass().getResource(STR."/t_rex/\{directory}");
+        URL urlResources = getClass().getResource("/t_rex/" + directory);
         assert urlResources != null;
         Path path = Paths.get(urlResources.toURI());
         File dir = new File(String.valueOf(path.toFile()));
         File[] allFiles = dir.listFiles();
         if (allFiles == null) {
-            System.err.println(STR."No Files found inside: \{dir}");
+            System.err.println("No Files found inside: " + dir);
             return;
         }
 

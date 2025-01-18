@@ -99,7 +99,7 @@ public class GamePanel extends JPanel implements Inputs.Listener {
 
         /* Draw Score Label */
         g.setFont(GameFont.getInstance().getSuperDream());
-        g.drawString(STR."\{score}", 50,50);
+        g.drawString(String.valueOf(score), 50,50);
         if(enemyX < Dino.X_COORDINATE && !isEnemyCrossed) {
             isEnemyCrossed = true;
             score++;
