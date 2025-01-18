@@ -1,43 +1,80 @@
 package Utils;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import java.io.InputStream;
+import javazoom.jl.player.Player;
+
+import java.io.BufferedInputStream;
+import java.util.Objects;
 
 public class GameSound {
 
-    private static GameSound gameSound = null;
-    private Clip introClip;
-    private Clip btnHoverClip;
+    public enum TRACK {
+        INTRO, GRASSLAND, DEATH
+    }
 
-    private GameSound() {
+    private boolean isSoundOnInMenu;
+    private Player player;
+    private Thread playerThread;
+    private String grasslandStr = "/sounds/grasslands_theme.mp3";
+    private String introStr = "/sounds/intro_theme.mp3";
+    private String deathStr = "/sounds/death.ogg";
+
+    private static GameSound gameSound = null;
+
+    private GameSound() throws Exception {
+        isSoundOnInMenu = true;
         try {
-            InputStream inputStream1 = getClass().getResourceAsStream("/sounds/button_hover.wav");
-            InputStream inputStream2 = getClass().getResourceAsStream("/sounds/dino_intro.wav");
-            assert inputStream1 != null;
-            assert inputStream2 != null;
-            AudioInputStream audioInputStream1 = AudioSystem.getAudioInputStream(inputStream1);
-            AudioInputStream audioInputStream2 = AudioSystem.getAudioInputStream(inputStream2);
-            introClip = AudioSystem.getClip();
-            introClip.open(audioInputStream2);
-            btnHoverClip = AudioSystem.getClip();
-            btnHoverClip.open(audioInputStream1);
+            getClass().getResourceAsStream("/sounds/button_hover.wav");
+            getClass().getResourceAsStream(introStr);
+            getClass().getResourceAsStream(grasslandStr);
+            getClass().getResourceAsStream(deathStr);
         } catch (Exception exception) {
-            System.err.println("Error: " + exception.getClass().getName() + " - " + exception.getMessage());
+            throw new Exception("Unable to load audio - " + exception.getClass() + ": " + exception.getMessage());
         }
     }
 
-    public static synchronized GameSound getInstance() {
+    public static synchronized GameSound getInstance() throws Exception {
         if (gameSound == null) gameSound = new GameSound();
         return gameSound;
     }
 
-    public Clip getIntroClip() {
-        return introClip;
+    public void playClip(TRACK track) {
+        if (!isSoundOnInMenu) return;
+
+        // Stop any currently playing audio immediately by interrupting its thread
+        if (playerThread != null && playerThread.isAlive()) {
+            playerThread.interrupt(); // Interrupt the current playback thread
+            //  stopPlayer(); // Stop the audio playback
+        }
+
+        playerThread = new Thread(() -> {
+            stopPlayer();
+            try {
+                BufferedInputStream bufferedInputStream;
+                if (track == TRACK.INTRO)
+                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(introStr)));
+                else if (track == TRACK.GRASSLAND)
+                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(grasslandStr)));
+                else
+                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(deathStr)));
+
+                Thread.sleep(100);
+                player = new Player(bufferedInputStream);
+                player.play();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        playerThread.start();
     }
 
-    public Clip getBtnHoverClipSound() {
-        return btnHoverClip;
+    public void isSoundOn(boolean isSoundOnInMenu) {
+        this.isSoundOnInMenu = isSoundOnInMenu;
+    }
+
+    public void stopPlayer() {
+        if (player != null) {
+            player.close();
+            //player = null;
+        }
     }
 }

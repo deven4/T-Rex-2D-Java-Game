@@ -1,6 +1,5 @@
 import Utils.*;
 
-import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -21,11 +20,12 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     private int forestSpeed = 1;
     private boolean isPlayPressed;
     private boolean isGameStarted;
-    private final Clip introClip;
     private final BufferedImage forestImg;
     private boolean isShowObstacles;
     boolean isEnemyCrossed;
     private int velocity = -22;
+
+    private final GameSound gameSound;
     private final GameLabel lblStart;
     private final Enemy enemy;
     private final GameMenuPanel gameMenuPanel;
@@ -42,9 +42,11 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         enemyX = GameConfig.WIDTH;
         currState = Dino.IDLE;
         dinoY = Dino.Y_COORDINATE;
-        introClip = GameSound.getInstance().getIntroClip();
-        lblStart = new GameLabel("Press space bar to start", GameConfig.WIDTH / 2 - 150, 150);
+
+        gameSound = GameSound.getInstance();
         gameMenuPanel = new GameMenuPanel(this);
+        gameSound.playClip(GameSound.TRACK.INTRO);
+        lblStart = new GameLabel("Press space bar to start", GameConfig.WIDTH / 2 - 150, 150);
 
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
         addKeyListener(new Inputs(this, null));
@@ -63,11 +65,18 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         isGameStarted = true;
         isPlayPressed = true;
         currState = Dino.WALKING;
-        introClip.stop();
+        gameSound.playClip(GameSound.TRACK.GRASSLAND);
     }
 
     private void endGame() {
-
+        System.out.println("GAME OVER");
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        gameMenuPanel.showMenu(GameMenuPanel.Menu.RESTART);
+        //gameSound.playClip(GameSound.TRACK.INTRO);
     }
 
     @Override
@@ -188,10 +197,15 @@ public class GamePanel extends JPanel implements Inputs.Listener {
                 } else if (currState == Dino.DEATH) {
                     isGameStarted = false;
                     dinoImgIdx = dino.getStateLength(currState) - 1;
+                    endGame();
                 }
                 dinoY = Dino.Y_COORDINATE;
             } else dinoImgIdx++;
         }
+    }
+
+    public boolean isGameStarted() {
+        return isGameStarted;
     }
 
     @Override

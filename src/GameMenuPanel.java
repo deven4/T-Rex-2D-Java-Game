@@ -1,7 +1,4 @@
-import Utils.Animate;
-import Utils.GameButton;
-import Utils.GameConfig;
-import Utils.GameFont;
+import Utils.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,20 +7,23 @@ public class GameMenuPanel extends JPanel {
 
     private GameButton btnPlay;
     private GameButton btnResume;
+    private GameButton btnRestart;
     private final GameFont gameFont;
     private final GamePanel gamePanel;
+    private final GameSound gameSound;
     private JPanel mainMenuPanel;
     private JPanel optionsMenuPanel;
     private final Animate menuPanelAnimation;
     private boolean isMenuVisible;
 
-    GameMenuPanel(GamePanel gamePanel) {
+    GameMenuPanel(GamePanel gamePanel) throws Exception {
         super();
 
         setOpaque(false);
         setLayout(null);
         setBackground(Color.LIGHT_GRAY);
         this.gamePanel = gamePanel;
+        gameSound = GameSound.getInstance();
         gameFont = GameFont.getInstance();
 
         buildMainMenuPanel();
@@ -40,14 +40,16 @@ public class GameMenuPanel extends JPanel {
 
         btnPlay = new GameButton("PLAY");
         btnResume = new GameButton("RESUME");
+        btnRestart = new GameButton("RESTART");
         GameButton btnOptions = new GameButton("OPTIONS");
         GameButton btnExit = new GameButton("EXIT");
-        btnResume.setVisible(false);
 
         /* Add buttons to mainMenuPanel */
         mainMenuPanel.add(btnPlay);
         mainMenuPanel.add(Box.createVerticalStrut(10));
         mainMenuPanel.add(btnResume);
+        mainMenuPanel.add(Box.createVerticalStrut(10));
+        mainMenuPanel.add(btnRestart);
         mainMenuPanel.add(Box.createVerticalStrut(10));
         mainMenuPanel.add(btnOptions);
         mainMenuPanel.add(Box.createVerticalStrut(10));
@@ -59,6 +61,8 @@ public class GameMenuPanel extends JPanel {
         mainMenuPanel.setSize((int) mainMenuPanel.getPreferredSize().getWidth(),
                 (int) mainMenuPanel.getPreferredSize().getHeight());
         add(mainMenuPanel);
+        btnResume.setVisible(false);
+        btnRestart.setVisible(false);
 
         /* Add Action listeners */
         btnPlay.addActionListener(_ -> {
@@ -66,9 +70,16 @@ public class GameMenuPanel extends JPanel {
             gamePanel.startGame();
         });
         btnResume.addActionListener(_ -> {
-            showMenu(Menu.RESUME);
+            isMenuVisible = false;
             Game.isGamePaused = false;
+            menuPanelAnimation.hide();
         });
+        btnRestart.addActionListener(e -> {
+            menuPanelAnimation.hide();
+            isMenuVisible = false;
+            gamePanel.startGame();
+        });
+
         btnOptions.addActionListener(_ -> showMenu(Menu.OPTIONS));
         btnExit.addActionListener(_ -> System.exit(0));
     }
@@ -102,7 +113,7 @@ public class GameMenuPanel extends JPanel {
         gbc.gridx = 1;
         gbc.gridy = 0;
         subOptionMenuPanel.add(btnSoundToggleL, gbc);
-        JLabel label = new JLabel("OFF");
+        JLabel label = new JLabel("ON ");
         label.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
         gbc.gridx = 2;
         gbc.gridy = 0;
@@ -218,8 +229,16 @@ public class GameMenuPanel extends JPanel {
     }
 
     private void soundPlayback(JLabel label) {
-        if (label.getText().equals("OFF")) label.setText("ON ");
-        else label.setText("OFF");
+        if (label.getText().equals("OFF")) {
+            label.setText("ON ");
+            gameSound.isSoundOn(true);
+            if (!gamePanel.isGameStarted()) gameSound.playClip(GameSound.TRACK.INTRO);
+            else gameSound.playClip(GameSound.TRACK.GRASSLAND);
+        } else {
+            gameSound.isSoundOn(false);
+            gameSound.stopPlayer();
+            label.setText("OFF");
+        }
     }
 
     public void showMenu(Menu menu) {
@@ -248,8 +267,17 @@ public class GameMenuPanel extends JPanel {
             case RESUME -> {
                 btnPlay.setVisible(true);
                 btnResume.setVisible(false);
-                menuPanelAnimation.hide();
-                isMenuVisible = false;
+                btnRestart.setVisible(false);
+
+            }
+
+            case RESTART -> {
+                btnPlay.setVisible(false);
+                btnResume.setVisible(false);
+                btnRestart.setVisible(true);
+                mainMenuPanel.setVisible(true);
+                menuPanelAnimation.start();
+                isMenuVisible = true;
             }
         }
     }
@@ -259,6 +287,6 @@ public class GameMenuPanel extends JPanel {
     }
 
     public enum Menu {
-        MAIN, OPTIONS, NOMENU, PAUSE, RESUME
+        MAIN, OPTIONS, NOMENU, PAUSE, RESUME, RESTART
     }
 }

@@ -49,46 +49,40 @@ public class Animate implements ActionListener {
         int currentX = widget.getX();
         int currentY = widget.getY();
 
-        if (isHide) {
-            if (currentX < GameConfig.WIDTH) {
-                widget.setLocation(currentX + 15, finalY);
-            } else {
-                ((Timer) e.getSource()).stop();
-                isHide = false;
-            }
-            return;
-        }
-
-        switch (animation) {
-            case SLIDE_DOWN -> {
-                if (counter >= widget.getComponents().length) counter = 0;
-
-                if (currentY + widget.getHeight() < 0) {
-                    currentY = GameConfig.HEIGHT;
-                }
-                widget.setLocation(finalX, currentY - 2);
-
-//                else {
-//                    JLabel lbl = (JLabel) widget.getComponents()[counter];
-//                    currentY = lbl.getY() - 10;
-//                    if(lbl.getText() == "Lead UI/UX Game Designer")
-//                        System.out.println(lbl.getText() + " = " + currentY);
-//                    if (currentY + lbl.getHeight() < 0) {
-//                        // If label is out of view at the top, reset it to the bottom
-//                        currentY = GameConfig.HEIGHT;
-//                    }
-//                    lbl.setLocation(lbl.getX(), currentY);
-//                    counter += 1;
-//                }
-            }
-            case SLIDE_RIGHT -> {
-                if (currentX > (finalX - 40)) {
-                    widget.setLocation(currentX - 15, finalY);
+        try {
+            if (isHide) {
+                Thread.sleep(2);
+                if (currentX < GameConfig.WIDTH) {
+                    widget.setLocation(currentX + 15, finalY);
                 } else {
-                    widget.setLocation(finalX, finalY);
                     ((Timer) e.getSource()).stop();
+                    isHide = false;
+                }
+                return;
+            }
+
+            switch (animation) {
+                case SLIDE_DOWN -> {
+                    if (counter >= widget.getComponents().length) counter = 0;
+
+                    if (currentY + widget.getHeight() < 0) {
+                        currentY = GameConfig.HEIGHT;
+                    }
+                    Thread.sleep(5);
+                    widget.setLocation(finalX, currentY - 1);
+                }
+                case SLIDE_RIGHT -> {
+
+                    if (currentX > (finalX - 40)) {
+                        widget.setLocation(currentX - 15, finalY);
+                    } else {
+                        widget.setLocation(finalX, finalY);
+                        ((Timer) e.getSource()).stop();
+                    }
                 }
             }
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }
