@@ -23,8 +23,8 @@ public class GameMenuPanel extends JPanel {
         setLayout(null);
         setBackground(Color.LIGHT_GRAY);
         this.gamePanel = gamePanel;
-        gameSound = GameSound.getInstance();
-        gameFont = GameFont.getInstance();
+        this.gameFont = GameFont.getInstance();
+        this.gameSound = GameSound.getInstance();
 
         buildMainMenuPanel();
         buildOptionMenuPanel();
@@ -43,6 +43,7 @@ public class GameMenuPanel extends JPanel {
         btnRestart = new GameButton("RESTART");
         GameButton btnOptions = new GameButton("OPTIONS");
         GameButton btnExit = new GameButton("EXIT");
+        GameSound gameSound = GameSound.getInstance();
 
         /* Add buttons to mainMenuPanel */
         mainMenuPanel.add(btnPlay);
@@ -67,17 +68,21 @@ public class GameMenuPanel extends JPanel {
         /* Add Action listeners */
         btnPlay.addActionListener(_ -> {
             showMenu(Menu.NOMENU);
+            gameSound.stop(GameSound.TRACK.INTRO);
             gamePanel.startGame();
         });
         btnResume.addActionListener(_ -> {
             isMenuVisible = false;
             Game.isGamePaused = false;
             menuPanelAnimation.hide();
+            gamePanel.requestFocus();
+            gameSound.stop(GameSound.TRACK.INTRO);
         });
         btnRestart.addActionListener(e -> {
             menuPanelAnimation.hide();
             isMenuVisible = false;
             gamePanel.startGame();
+            gamePanel.restartGame();
         });
 
         btnOptions.addActionListener(_ -> showMenu(Menu.OPTIONS));
@@ -148,7 +153,7 @@ public class GameMenuPanel extends JPanel {
                 String[] split = s.split("-");
                 JLabel lblCredit = new JLabel(split[0]);
                 lblCredit.setFont(gameFont.getSuperDream().deriveFont(25f));
-                lblCredit.setForeground(GameConfig.PRIMARY_COLOR);
+                lblCredit.setForeground(Config.PRIMARY_COLOR);
                 gbc3.gridx = 0;
                 gbc3.gridy = count;
                 gbc3.anchor = GridBagConstraints.CENTER;
@@ -158,7 +163,7 @@ public class GameMenuPanel extends JPanel {
                     for (int i = 0; i < Integer.parseInt(split[1]); i++) {
                         JLabel lblCredit2 = new JLabel("DEVEN WARANG");
                         lblCredit2.setFont(gameFont.getSuperDream().deriveFont(20f));
-                        lblCredit2.setForeground(GameConfig.SECONDARY_COLOR);
+                        lblCredit2.setForeground(Config.SECONDARY_COLOR);
                         gbc3.gridx = 0;
                         gbc3.gridy = count;
                         gbc3.anchor = GridBagConstraints.CENTER;
@@ -168,7 +173,7 @@ public class GameMenuPanel extends JPanel {
                 } else {
                     JLabel lblCredit2 = new JLabel("DEVEN WARANG");
                     lblCredit2.setFont(gameFont.getSuperDream().deriveFont(20f));
-                    lblCredit2.setForeground(GameConfig.SECONDARY_COLOR);
+                    lblCredit2.setForeground(Config.SECONDARY_COLOR);
                     gbc3.gridx = 0;
                     gbc3.gridy = count;
                     gbc3.anchor = GridBagConstraints.CENTER;
@@ -218,8 +223,8 @@ public class GameMenuPanel extends JPanel {
     }
 
     private void recalculateSize() {
-        int btnX = (int) (GameConfig.WIDTH - GameConfig.WIDTH * 0.40); // subtracting 40% from the gameBoard width
-        int btnY = (int) (GameConfig.HEIGHT - GameConfig.HEIGHT * 0.80) + 20;
+        int btnX = (int) (Config.WIDTH - Config.WIDTH * 0.40); // subtracting 40% from the gameBoard width
+        int btnY = (int) (Config.HEIGHT - Config.HEIGHT * 0.80) + 20;
         optionsMenuPanel.setSize((int) optionsMenuPanel.getPreferredSize().getWidth(), (int) optionsMenuPanel.getPreferredSize().getHeight());
         int width = Math.max(mainMenuPanel.getX() + mainMenuPanel.getWidth(), optionsMenuPanel.getX() + optionsMenuPanel.getWidth());
         int height = Math.max(mainMenuPanel.getY() + mainMenuPanel.getHeight(), optionsMenuPanel.getY() + optionsMenuPanel.getHeight());
@@ -231,13 +236,12 @@ public class GameMenuPanel extends JPanel {
     private void soundPlayback(JLabel label) {
         if (label.getText().equals("OFF")) {
             label.setText("ON ");
-            gameSound.isSoundOn(true);
-            if (!gamePanel.isGameStarted()) gameSound.playClip(GameSound.TRACK.INTRO);
-            else gameSound.playClip(GameSound.TRACK.GRASSLAND);
+            gameSound.setSoundOn(true);
+            gameSound.play(GameSound.TRACK.GRASSLAND_THEME);
         } else {
-            gameSound.isSoundOn(false);
-            gameSound.stopPlayer();
             label.setText("OFF");
+            gameSound.setSoundOn(false);
+            gameSound.stop(GameSound.TRACK.INTRO);
         }
     }
 

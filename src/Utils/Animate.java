@@ -27,9 +27,9 @@ public class Animate implements ActionListener {
 
     public void start() {
         switch (animation) {
-            case SLIDE_RIGHT -> widget.setLocation(GameConfig.WIDTH, GameConfig.HEIGHT);
+            case SLIDE_RIGHT -> widget.setLocation(Config.WIDTH, Config.HEIGHT);
             case SLIDE_DOWN -> {
-                widget.setLocation(widget.getX(), GameConfig.HEIGHT);
+                widget.setLocation(widget.getX(), Config.HEIGHT);
             }
         }
         timer.start();
@@ -52,7 +52,7 @@ public class Animate implements ActionListener {
         try {
             if (isHide) {
                 Thread.sleep(2);
-                if (currentX < GameConfig.WIDTH) {
+                if (currentX < Config.WIDTH) {
                     widget.setLocation(currentX + 15, finalY);
                 } else {
                     ((Timer) e.getSource()).stop();
@@ -66,7 +66,7 @@ public class Animate implements ActionListener {
                     if (counter >= widget.getComponents().length) counter = 0;
 
                     if (currentY + widget.getHeight() < 0) {
-                        currentY = GameConfig.HEIGHT;
+                        currentY = Config.HEIGHT;
                     }
                     Thread.sleep(5);
                     widget.setLocation(finalX, currentY - 1);

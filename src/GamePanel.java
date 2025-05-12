@@ -1,154 +1,130 @@
+import Entites.Assets;
+import Entites.Dino;
 import Utils.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GamePanel extends JPanel implements Inputs.Listener {
 
+    public static int score;
+
     private final int[] forestX;
-    private int dinoImgIdx;
-    private int enemyImgIdx;
-    private int currState;
-    private int animationTick;
-    private final Dino dino;
-    private int counter = 0;
-    private int animationSpeed;
-    private int dinoY;
-    private int score;
-    private int enemyX;
     private int forestSpeed = 1;
     private boolean isPlayPressed;
-    private boolean isGameStarted;
     private final BufferedImage forestImg;
-    private boolean isShowObstacles;
-    boolean isEnemyCrossed;
-    private int velocity = -22;
 
+    private final Dino dino;
     private final GameSound gameSound;
     private final GameLabel lblStart;
-    private final Enemy enemy;
     private final GameMenuPanel gameMenuPanel;
-    private int testCount = 1;
+    private final ArrayList<Enemy> enemyList = new ArrayList<>();
 
     public GamePanel() throws Exception {
         super();
-        dino = new Dino();
         forestX = new int[2];
-        enemy = new Enemy();
+        Assets assets = new Assets();
+        dino = new Dino(assets.getDino());
         forestImg = new ForestBG().getBufferedImage()[1];
-        forestX[1] = forestX[0] + forestImg.getWidth();
-        animationSpeed = 12;
-        enemyX = GameConfig.WIDTH;
-        currState = Dino.IDLE;
-        dinoY = Dino.Y_COORDINATE;
-
         gameSound = GameSound.getInstance();
         gameMenuPanel = new GameMenuPanel(this);
-        gameSound.playClip(GameSound.TRACK.INTRO);
-        lblStart = new GameLabel("Press space bar to start", GameConfig.WIDTH / 2 - 150, 150);
+        gameSound.play(GameSound.TRACK.GRASSLAND_THEME);
+        lblStart = new GameLabel("Press space bar to start", Config.WIDTH / 2 - 150, 150);
 
+        forestX[1] = forestX[0] + forestImg.getWidth();
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
+        enemyList.add(new Enemy(assets.getCactus()));
+         dino.setListener(this::showRestartMenuWithDelay);
         addKeyListener(new Inputs(this, null));
 
         requestFocus();
         setLayout(null);
         add(gameMenuPanel);
         setFocusable(true);
-        setPreferredSize(new Dimension(GameConfig.WIDTH, GameConfig.HEIGHT));
+        setPreferredSize(new Dimension(Config.WIDTH, Config.HEIGHT));
     }
 
     public void startGame() {
         requestFocus();
         setFocusable(true);
         lblStart.show(true);
-        isGameStarted = true;
         isPlayPressed = true;
-        currState = Dino.WALKING;
-        gameSound.playClip(GameSound.TRACK.GRASSLAND);
+        dino.setState(Dino.WALKING);
+        Game.setState(Game.State.READY_TO_START);
     }
 
-    private void endGame() {
-        System.out.println("GAME OVER");
+    public void restartGame() {
+        dino.setState(Dino.IDLE);
+        Game.setState(Game.State.RESTART);
+        forestX[0] = 0;
+        forestX[1] = forestX[0] + forestImg.getWidth();
+    }
+
+    private void showRestartMenuWithDelay() {
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         gameMenuPanel.showMenu(GameMenuPanel.Menu.RESTART);
-        //gameSound.playClip(GameSound.TRACK.INTRO);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        try {
-            move();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Graphics2D g2d = (Graphics2D) g;
 
         /* Draw Forest */
-        g.drawImage(forestImg, forestX[0], 0, forestImg.getWidth(), GameConfig.HEIGHT, this);
-        g.drawImage(forestImg, forestX[1], 0, forestImg.getWidth(), GameConfig.HEIGHT, this);
+        g.drawImage(forestImg, forestX[0], 0, forestImg.getWidth(), Config.HEIGHT, this);
+        g.drawImage(forestImg, forestX[1], 0, forestImg.getWidth(), Config.HEIGHT, this);
 
-        /* Draw Dino */
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.drawImage(dino.getImages()[currState][dinoImgIdx], Dino.X_COORDINATE, dinoY, this);
-
-        /* Draw Cactus */
-        g2d.drawImage(enemy.getCactusImage()[enemyImgIdx], enemyX, Enemy.Y,
-                enemy.getCactusImage()[enemyImgIdx].getWidth(),
-                enemy.getCactusImage()[enemyImgIdx].getHeight(), null);
+        dino.draw(g2d, this); /* Draw Dino */
+        for (Enemy enemy : enemyList) enemy.draw(g2d, this); /* Draw Cactus */
+        g.setColor(Color.BLACK);
         lblStart.draw(g);
 
         /* Draw Score Label */
+        g.setColor(Color.BLACK);
         g.setFont(GameFont.getInstance().getSuperDream());
-        g.drawString(String.valueOf(score), 50,50);
-        if(enemyX < Dino.X_COORDINATE && !isEnemyCrossed) {
-            isEnemyCrossed = true;
-            score++;
-        }
-
-        /* DEBUG: */
-//        if (rectDino != null) {
-//            g2d.setColor(Color.red);
-//            g.drawRect(rectDino.x, rectDino.y, rectDino.width, rectDino.height);
-//        }
-        g2d.setColor(Color.ORANGE);
-        g.drawRect(enemyX + 10, Enemy.Y, enemy.getWidth(), enemy.getCactusImage()[enemyImgIdx].getHeight());
+        g.drawString(String.valueOf(score), 50, 50);
     }
 
-    private void move() throws Exception {
-        if (currState == Dino.JUMPING) animationSpeed = 25;
-        else animationSpeed = 12;
-        if (!gameMenuPanel.isMenuVisible()) {
-            if (isGameStarted) {
-                if (checkDinoCollision()) {
-                    currState = Dino.DEATH;
-                } else {
-                    moveBackground();
+    public void update() {
+        dino.animate();
+
+        if (Game.isGameReadyToStart) {
+            if (!gameMenuPanel.isMenuVisible()) moveBackground(forestSpeed);
+        } else if (Game.isGameRunning) {
+            moveBackground(forestSpeed);
+            /* To move all the enemies */
+            for (Enemy enemy : enemyList) {
+                enemy.animate();
+                /* To check collision of all the enemies */
+                if (enemy.collision(dino.getY(), dino.getImageSize())
+                        && dino.getCurrentState() != Dino.DEATH) {
+                    gameSound.play(GameSound.TRACK.DEATH);
+                    dino.setState(Dino.DEATH);
+                    Game.setState(Game.State.OVER);
+                    return;
                 }
-                animate();
+                if (enemy.isEnemyCrossed) continue;
+                enemy.move(forestSpeed);
+                break;
             }
-        } else if (currState == Dino.IDLE) animate();
+        } else if (Game.isGameRestart) {
+           // moveBackground(-3);
+        } else if (Game.isGameOver) {
+
+        }
     }
 
-    private boolean checkDinoCollision() throws Exception {
-        Rectangle rectDino = new Rectangle(Dino.X_COORDINATE + 10, dinoY,
-                dino.getImageHeightWidth(currState).x - 20, dino.getImageHeightWidth(currState).y - 10);
-        Rectangle rectObstacle = new Rectangle(enemyX + 10, Enemy.Y, enemy.getWidth(),
-                enemy.getCactusImage()[enemyImgIdx].getHeight());
-        return rectObstacle.intersects(rectDino);
-    }
-
-    private void moveBackground() {
-        forestX[0] = forestX[0] - forestSpeed;
-        forestX[1] = forestX[1] - forestSpeed;
+    private void moveBackground(int speed) {
+        forestX[0] = forestX[0] - speed;
+        forestX[1] = forestX[1] - speed;
 
         if (forestX[0] + forestImg.getWidth() <= 0) {
             forestX[0] = forestX[1] + forestImg.getWidth();
@@ -156,85 +132,28 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         if (forestX[1] + forestImg.getWidth() <= 0) {
             forestX[1] = forestX[0] + forestImg.getWidth();
         }
-
-        /* Move Obstacle */
-        if (isShowObstacles) {
-            if (enemyX + enemy.getCactusImage()[enemyImgIdx].getWidth() < 0) {
-                isEnemyCrossed = false;
-                enemyX = GameConfig.WIDTH;
-            }
-            enemyX = enemyX - forestSpeed;
-        }
-    }
-
-    private void animate() {
-        counter += 1;
-        animationTick++;
-
-        if (currState == Dino.JUMPING && counter % 3 == 0) {
-            // Update the position based on velocity
-            dinoY += velocity;
-            velocity += 1; // Apply gravity to velocity
-
-            // Check if the panel has reached or passed the initial Y position
-            if (dinoY >= Dino.Y_COORDINATE) {
-                dinoY = Dino.Y_COORDINATE; // Set back to initial position
-                currState = Dino.RUNNING; // Stop the animation
-            }
-        }
-        if (animationTick >= animationSpeed) {
-            animationTick = 0;
-
-            // Animate Enemy
-            if (enemyImgIdx >= enemy.getCactusImage().length - 1) enemyImgIdx = 0;
-            else enemyImgIdx++;
-
-            // Animate Dino
-            if (dinoImgIdx >= dino.getStateLength(currState) - 1) {
-                dinoImgIdx = 0;
-                if (currState == Dino.JUMPING) {
-                    currState = Dino.RUNNING;
-                } else if (currState == Dino.DEATH) {
-                    isGameStarted = false;
-                    dinoImgIdx = dino.getStateLength(currState) - 1;
-                    endGame();
-                }
-                dinoY = Dino.Y_COORDINATE;
-            } else dinoImgIdx++;
-        }
-    }
-
-    public boolean isGameStarted() {
-        return isGameStarted;
-    }
-
-    @Override
-    public void onUpPressed() {
-        if (currState == Dino.DEATH) currState = Dino.WALKING;
-        else currState = Dino.DEATH;
     }
 
     @Override
     public void onSpaceBarPressed() {
-        if (!isGameStarted) return;
+        if (!Game.isGameReadyToStart && !Game.isGameRunning) return; /* Only two game state where the dino can jump */
 
         if (isPlayPressed) {
             forestSpeed = 2;
             isPlayPressed = false;
-            isShowObstacles = true;
-            currState = Dino.RUNNING;
             lblStart.show(false);
-        } else if (currState != Dino.JUMPING) {
-            counter = 0;
-            dinoImgIdx = 0;
-            velocity = -22;
-            currState = Dino.JUMPING;
+            dino.setState(Dino.RUNNING);
+            Game.setState(Game.State.RUNNING);
+            //gameSound.play(GameSound.TRACK.RUN);
+        } else {
+            //counter = 0;
+            dino.setState(Dino.JUMPING);
         }
     }
 
     @Override
     public void onEscapeKeyPressed() {
-        if (!Game.isGamePaused && isGameStarted) {
+        if (!Game.isGamePaused && Game.isGameRunning) {
             Game.isGamePaused = true;
             gameMenuPanel.showMenu(GameMenuPanel.Menu.PAUSE);
         }

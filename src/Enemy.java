@@ -1,30 +1,70 @@
-import javax.imageio.ImageIO;
+import Entites.Dino;
+import Utils.Config;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.net.URL;
 
 public class Enemy {
 
-    public static final int Y = Dino.Y_COORDINATE + 20;
-    private final BufferedImage[] enemyImageArray;
+    private int x;
+    private final int y;
+    private int enemyImgIdx;
+    public boolean isEnemyCrossed;
+    private boolean isDinoJumpedAcross;
+    private final BufferedImage[] enemyImages;
 
-    public Enemy() throws Exception {
-        URL url = getClass().getResource("obstacles");
-        assert url != null;
-        File file = new File(url.toURI());
-        File[] fileContent = file.listFiles();
-        assert fileContent != null;
-        enemyImageArray = new BufferedImage[fileContent.length];
-        for (int i = 0; i < fileContent.length; i++) {
-            enemyImageArray[i] = ImageIO.read(fileContent[i]);
+    public Enemy(BufferedImage[] enemyImages) throws Exception {
+        this(enemyImages, Config.WIDTH, Dino.Y_COORDINATE + 10);
+    }
+
+    public Enemy(BufferedImage[] enemyImages, int x, int y) throws Exception {
+        this.x = x;
+        this.y = y;
+        this.enemyImages = enemyImages;
+    }
+
+    public void draw(Graphics2D g2d, Component c) {
+        g2d.drawImage(enemyImages[enemyImgIdx], x, y, enemyImages[enemyImgIdx].getWidth(),
+                enemyImages[enemyImgIdx].getHeight(), c);
+
+        /* HIT-BOX */
+        g2d.setColor(Color.ORANGE);
+        g2d.drawRect(x + 10, y, enemyImages[0].getWidth() - 20, enemyImages[enemyImgIdx].getHeight());
+    }
+
+    public void animate() {
+        if (enemyImgIdx >= enemyImages.length - 1) enemyImgIdx = 0;
+        else enemyImgIdx++;
+    }
+
+    public void move(int speed) {
+        if (isEnemyCrossed) return;
+        if (x + enemyImages[enemyImgIdx].getWidth() < 0) {
+            x = Config.WIDTH;
+            isEnemyCrossed = false;
+            isDinoJumpedAcross = false;
+        } else {
+            x = x - speed;
+            if (x < Dino.X_COORDINATE && !isDinoJumpedAcross) {
+                GamePanel.score++;
+                isDinoJumpedAcross = true;
+            }
         }
     }
 
-    public BufferedImage[] getCactusImage() {
-        return enemyImageArray;
+    public boolean collision(int dinoY, Point imageDims) {
+        try {
+            Rectangle rectDino = new Rectangle(Dino.X_COORDINATE + 10, dinoY, imageDims.x - 20,
+                    imageDims.y - 10);
+            Rectangle rectObstacle = new Rectangle(x + 10, y, enemyImages[0].getWidth() - 20,
+                    enemyImages[enemyImgIdx].getHeight());
+            return rectObstacle.intersects(rectDino);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public int getWidth() {
-        return enemyImageArray[0].getWidth() - 20;
-    }
+//    public int getWidth() {
+//        return enemyImageArray[0].getWidth() - 20;
+//    }
 }

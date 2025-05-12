@@ -1,80 +1,72 @@
 package Utils;
 
-import javazoom.jl.player.Player;
-
-import java.io.BufferedInputStream;
-import java.util.Objects;
+import Utils.Sounds.AudioMaster;
+import Utils.Sounds.Source;
 
 public class GameSound {
 
     public enum TRACK {
-        INTRO, GRASSLAND, DEATH
+        INTRO, BUTTON_HOVER, GRASSLAND_THEME, DEATH, RUN
     }
 
-    private boolean isSoundOnInMenu;
-    private Player player;
-    private Thread playerThread;
-    private String grasslandStr = "/sounds/grasslands_theme.mp3";
-    private String introStr = "/sounds/intro_theme.mp3";
-    private String deathStr = "/sounds/death.ogg";
+    private final int dinoDeath;
+    private final int dinoFootstep;
+    private final int buttonHover;
+    private final int introTheme;
+    private final int grasslandTheme;
 
+    private boolean isSoundOn;
+
+    private final Source sourceRun;
+    private final Source sourceDino;
+    private final Source sourceIntro;
+    private final Source sourceHover;
     private static GameSound gameSound = null;
 
-    private GameSound() throws Exception {
-        isSoundOnInMenu = true;
+    public GameSound() {
         try {
-            getClass().getResourceAsStream("/sounds/button_hover.wav");
-            getClass().getResourceAsStream(introStr);
-            getClass().getResourceAsStream(grasslandStr);
-            getClass().getResourceAsStream(deathStr);
-        } catch (Exception exception) {
-            throw new Exception("Unable to load audio - " + exception.getClass() + ": " + exception.getMessage());
+            AudioMaster.init();
+        } catch (Exception e) {
+            System.err.println("OpenAL not loaded successfully!");
         }
+        isSoundOn = true;
+
+        sourceDino = new Source(1, 0);
+        sourceHover = new Source(1, 0);
+        sourceIntro = new Source(0.5f, 0);
+        sourceRun = new Source(1, 0);
+
+        dinoDeath = AudioMaster.loadSound("/sounds/death.wav");
+        dinoFootstep = AudioMaster.loadSound("/sounds/step_rock.wav");
+        buttonHover = AudioMaster.loadSound("/sounds/button_hover.wav");
+        introTheme = AudioMaster.loadSound("/sounds/intro_theme.wav");
+        grasslandTheme = AudioMaster.loadSound("/sounds/grasslands_theme.wav");
     }
 
-    public static synchronized GameSound getInstance() throws Exception {
+    public static synchronized GameSound getInstance() {
         if (gameSound == null) gameSound = new GameSound();
         return gameSound;
     }
 
-    public void playClip(TRACK track) {
-        if (!isSoundOnInMenu) return;
+    public void play(TRACK track) {
+        if(track == TRACK.BUTTON_HOVER) sourceHover.play(buttonHover);
+        if(!isSoundOn) return;
 
-        // Stop any currently playing audio immediately by interrupting its thread
-        if (playerThread != null && playerThread.isAlive()) {
-            playerThread.interrupt(); // Interrupt the current playback thread
-            //  stopPlayer(); // Stop the audio playback
+        switch (track) {
+            case DEATH -> sourceDino.play(dinoDeath);
+            case RUN -> sourceRun.playLooping(dinoFootstep);
+            case INTRO -> sourceIntro.play(introTheme);
+            case GRASSLAND_THEME -> sourceIntro.play(grasslandTheme);
         }
-
-        playerThread = new Thread(() -> {
-            stopPlayer();
-            try {
-                BufferedInputStream bufferedInputStream;
-                if (track == TRACK.INTRO)
-                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(introStr)));
-                else if (track == TRACK.GRASSLAND)
-                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(grasslandStr)));
-                else
-                    bufferedInputStream = new BufferedInputStream(Objects.requireNonNull(getClass().getResourceAsStream(deathStr)));
-
-                Thread.sleep(100);
-                player = new Player(bufferedInputStream);
-                player.play();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        playerThread.start();
     }
 
-    public void isSoundOn(boolean isSoundOnInMenu) {
-        this.isSoundOnInMenu = isSoundOnInMenu;
+    public void stop(TRACK track) {
+        switch (track) {
+            case INTRO, GRASSLAND_THEME -> sourceIntro.stop();
+        }
     }
 
-    public void stopPlayer() {
-        if (player != null) {
-            player.close();
-            //player = null;
-        }
+    public void setSoundOn(boolean isSoundOn) {
+        this.isSoundOn = isSoundOn;
     }
 }

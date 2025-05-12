@@ -14,7 +14,6 @@ public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListen
     public void keyPressed(KeyEvent e) {
         if (keyboardListener == null) return;
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_W -> keyboardListener.onUpPressed();
             case KeyEvent.VK_SPACE -> keyboardListener.onSpaceBarPressed();
             case KeyEvent.VK_ESCAPE -> keyboardListener.onEscapeKeyPressed();
         }
@@ -60,8 +59,6 @@ public record Inputs(Listener keyboardListener, Inputs.mouseListener mouseListen
     }
 
     public interface Listener {
-
-        void onUpPressed();
 
         void onSpaceBarPressed();
 

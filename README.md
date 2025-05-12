@@ -1,1 +1,1 @@
-T-Rex Dino 2D Game made purely with Java
+T-Rex Entites.Dino 2D Game made purely with Java

@@ -1,12 +1,21 @@
-import Utils.GameConfig;
+import Utils.Config;
 
 import javax.swing.*;
 
 public class Game extends JFrame implements Runnable {
 
+    public enum State {
+        READY_TO_START, RUNNING, PAUSED, RESTART, OVER
+    }
+
     public static boolean isGameOver;
     public static boolean isGamePaused;
+    public static boolean isGameRunning;
+    public static boolean isGameRestart;
+    public static boolean isGameReadyToStart;
+
     private GamePanel gamePanel;
+    private boolean isGameLoopRunning;
 
     public Game() {
         SwingUtilities.invokeLater(() -> {
@@ -22,7 +31,6 @@ public class Game extends JFrame implements Runnable {
             } catch (Exception e) {
                 // Log the error and stop the game
                 System.err.println(e.getMessage());
-                e.printStackTrace();
                 JOptionPane.showMessageDialog(null, e.getMessage(),
                         "Error", JOptionPane.ERROR_MESSAGE);
                 System.exit(1);
@@ -37,25 +45,74 @@ public class Game extends JFrame implements Runnable {
 
     @Override
     public void run() {
-
         long currNano;
         int frames = 0;
         long lastFrame = System.nanoTime();
-        double timePerFrame = 1000000000.0 / GameConfig.FPS;
+        double timePerFrame = 1_000_000_000.0 / Config.FPS;
         long lastTimeInMillis = System.currentTimeMillis();
 
-        while (!isGameOver) {
+        while (!isGameLoopRunning) {
             currNano = System.nanoTime();
             if (currNano - lastFrame >= timePerFrame) {
                 frames++;
-                if (!isGamePaused) gamePanel.repaint();
+                if (!isGamePaused) {
+                    gamePanel.update();            // <-- critical for animation/movement
+                    gamePanel.repaint();      // draw the updated state
+                }
                 lastFrame = currNano;
             }
 
             if (System.currentTimeMillis() - lastTimeInMillis >= 1000) {
                 lastTimeInMillis = System.currentTimeMillis();
-                //  System.out.println("Frames per second: " + frames);
+                // System.out.println("FPS: " + frames);
                 frames = 0;
+            }
+
+            try {
+                //noinspection BusyWait
+                Thread.sleep(1); // prevent 100% CPU usage
+            } catch (InterruptedException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+    }
+
+    public static void setState(State gameState) {
+        switch (gameState) {
+            case READY_TO_START -> {
+                isGameOver = false;
+                isGamePaused = false;
+                isGameRunning = false;
+                isGameRestart = false;
+                isGameReadyToStart = true;
+            }
+            case RUNNING -> {
+                isGameOver = false;
+                isGamePaused = false;
+                isGameRestart = false;
+                isGameReadyToStart = false;
+                isGameRunning = true;
+            }
+            case PAUSED -> {
+                isGameOver = false;
+                isGameRunning = false;
+                isGameRestart = false;
+                isGameReadyToStart = false;
+                isGamePaused = true;
+            }
+            case RESTART -> {
+                isGameOver = false;
+                isGamePaused = false;
+                isGameRunning = false;
+                isGameReadyToStart = false;
+                isGameRestart = true;
+            }
+            case OVER -> {
+                isGamePaused = false;
+                isGameRunning = false;
+                isGameRestart = false;
+                isGameReadyToStart = false;
+                isGameOver = true;
             }
         }
     }

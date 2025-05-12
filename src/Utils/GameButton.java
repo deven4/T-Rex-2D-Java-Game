@@ -7,7 +7,6 @@ import java.awt.event.MouseEvent;
 
 public class GameButton extends JButton {
 
-
     public GameButton(String text) {
         super(text);
         initialise(true);
@@ -20,11 +19,12 @@ public class GameButton extends JButton {
 
     private void initialise(boolean onHover) {
         GameFont gameFont = GameFont.getInstance();
+        GameSound gameSound = GameSound.getInstance();
         setFont(gameFont.getSuperDream());
         setContentAreaFilled(false); // removes default button background
         setFocusPainted(false);
         setBorderPainted(false);
-        setForeground(GameConfig.SECONDARY_COLOR);
+        setForeground(Config.SECONDARY_COLOR);
 
         if (onHover) {
             setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -33,14 +33,15 @@ public class GameButton extends JButton {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     setContentAreaFilled(true);
-                    setForeground(GameConfig.PRIMARY_COLOR);
-                    setBackground(GameConfig.SECONDARY_COLOR);
+                    setForeground(Config.PRIMARY_COLOR);
+                    setBackground(Config.SECONDARY_COLOR);
+                    gameSound.play(GameSound.TRACK.BUTTON_HOVER);
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
                     setContentAreaFilled(false);
-                    setForeground(GameConfig.SECONDARY_COLOR);
+                    setForeground(Config.SECONDARY_COLOR);
                     //setFont(font.deriveFont(GameFont.getSize()));
                 }
             });
@@ -55,7 +56,7 @@ public class GameButton extends JButton {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Set background color and paint rounded rectangle
-        g2.setColor(GameConfig.PRIMARY_COLOR);
+        g2.setColor(Config.PRIMARY_COLOR);
 //        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
     }
 
