@@ -1,6 +1,7 @@
 package Entites;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
@@ -9,7 +10,8 @@ import java.nio.file.Paths;
 
 public class Assets {
 
-    private BufferedImage[] cactusImageArray;
+    private BufferedImage[] cactusImageImages;
+    private BufferedImage[] skeletonBombImages;
     private final BufferedImage[][] bufferedImage;
 
     public Assets() throws Exception {
@@ -22,6 +24,7 @@ public class Assets {
         loadDino("/t_rex/death", Dino.DEATH);
 
         loadCactus();
+        loadSkeletonBomb();
     }
 
     private File[] loadImages(String directory) throws Exception {
@@ -58,11 +61,27 @@ public class Assets {
     }
 
     private void loadCactus() throws Exception {
-        File[] files = loadImages("/obstacles");
+        File[] files = loadImages("/Enemies/cactus");
         assert files != null;
-        cactusImageArray = new BufferedImage[files.length];
+        cactusImageImages = new BufferedImage[files.length];
         for (int i = 0; i < files.length; i++) {
-            cactusImageArray[i] = ImageIO.read(files[i]);
+            cactusImageImages[i] = ImageIO.read(files[i]);
+        }
+    }
+
+    private void loadSkeletonBomb() throws Exception {
+        File[] files = loadImages("/Enemies/skeleton_bomb/idle");
+        assert files != null;
+        skeletonBombImages = new BufferedImage[files.length];
+        for (int i = 0; i < files.length; i++) {
+            // Create a new image with desired dimensions
+            BufferedImage resizedImg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = resizedImg.createGraphics();
+
+            // Draw the original image scaled to the new image
+            g2d.drawImage(ImageIO.read(files[i]), 0, 0, 100, 100, null);
+            g2d.dispose();
+            skeletonBombImages[i] = resizedImg;
         }
     }
 
@@ -71,6 +90,10 @@ public class Assets {
     }
 
     public BufferedImage[] getCactus() {
-        return cactusImageArray;
+        return cactusImageImages;
+    }
+
+    public BufferedImage[] getSkeletonBombImages() {
+        return skeletonBombImages;
     }
 }

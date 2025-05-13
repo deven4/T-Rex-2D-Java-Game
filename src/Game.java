@@ -117,6 +117,15 @@ public class Game extends JFrame implements Runnable {
         }
     }
 
+    public static State getCurrentState() {
+        if (isGameReadyToStart) return State.READY_TO_START;
+        if (isGameRunning) return State.RUNNING;
+        if (isGamePaused) return State.PAUSED;
+        if (isGameRestart) return State.RESTART;
+        if (isGameOver) return State.OVER;
+        return null;
+    }
+
     public static void main(String[] args) {
         new Game();
     }
