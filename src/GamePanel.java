@@ -36,8 +36,8 @@ public class GamePanel extends JPanel implements Inputs.Listener {
 
         forestX[1] = forestX[0] + forestImg.getWidth();
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
-        //enemyList.add(new Enemy(assets.getCactus()));
-        enemyList.add(new Enemy(assets.getSkeletonBombImages()));
+        enemyList.add(new Enemy(assets.getSkeletonBombImages(), Config.WIDTH, Dino.Y_COORDINATE+20));
+        enemyList.add(new Enemy(assets.getCactus()));
         dino.setListener(this::showRestartMenuWithDelay);
         addKeyListener(new Inputs(this, null));
 

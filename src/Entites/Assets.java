@@ -1,7 +1,6 @@
 package Entites;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
@@ -74,14 +73,14 @@ public class Assets {
         assert files != null;
         skeletonBombImages = new BufferedImage[files.length];
         for (int i = 0; i < files.length; i++) {
+            skeletonBombImages[i] = ImageIO.read(files[i]);
             // Create a new image with desired dimensions
-            BufferedImage resizedImg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = resizedImg.createGraphics();
-
-            // Draw the original image scaled to the new image
-            g2d.drawImage(ImageIO.read(files[i]), 0, 0, 100, 100, null);
-            g2d.dispose();
-            skeletonBombImages[i] = resizedImg;
+//            BufferedImage resizedImg = new BufferedImage(70, 80, BufferedImage.TYPE_INT_ARGB);
+//            Graphics2D g2d = resizedImg.createGraphics();
+//
+//            // Draw the original image scaled to the new image
+//            g2d.drawImage(ImageIO.read(files[i]), 0, 0, 70, 80, null);
+//            g2d.dispose();
         }
     }
 

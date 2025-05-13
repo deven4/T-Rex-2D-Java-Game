@@ -33,7 +33,8 @@ public class Enemy {
 
         /* HIT-BOX */
         g2d.setColor(Color.ORANGE);
-        g2d.drawRect(x + 10, y, enemyImages[0].getWidth() - 20, enemyImages[enemyImgIdx].getHeight());
+        System.out.println(enemyImages[enemyImgIdx].getWidth() + ", " + enemyImages[enemyImgIdx].getHeight());
+        g2d.drawRect(x, y, enemyImages[enemyImgIdx].getWidth(), enemyImages[enemyImgIdx].getHeight());
     }
 
     public void animate() {
