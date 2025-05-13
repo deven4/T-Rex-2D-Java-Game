@@ -158,6 +158,12 @@ public class Dino {
         return currState;
     }
 
+    public void resetPos() {
+        velocity = -22;
+        isCollided = false;
+        setState(Dino.IDLE);
+    }
+
     public interface dinoListener {
         void onDead();
     }

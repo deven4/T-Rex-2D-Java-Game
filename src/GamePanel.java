@@ -1,19 +1,19 @@
 import Entites.Assets;
 import Entites.Dino;
+import Entites.Enemy;
 import Utils.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class GamePanel extends JPanel implements Inputs.Listener {
 
     public static int score;
 
+    private int forestSpeed;
     private final int[] forestX;
-    private int forestSpeed = 1;
     private boolean isPlayPressed;
     private final BufferedImage forestImg;
 
@@ -36,8 +36,9 @@ public class GamePanel extends JPanel implements Inputs.Listener {
 
         forestX[1] = forestX[0] + forestImg.getWidth();
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
-        enemyList.add(new Enemy(assets.getCactus()));
-         dino.setListener(this::showRestartMenuWithDelay);
+        //enemyList.add(new Enemy(assets.getCactus()));
+        enemyList.add(new Enemy(assets.getSkeletonBombImages()));
+        dino.setListener(this::showRestartMenuWithDelay);
         addKeyListener(new Inputs(this, null));
 
         requestFocus();
@@ -50,17 +51,20 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     public void startGame() {
         requestFocus();
         setFocusable(true);
-        lblStart.show(true);
+        forestSpeed = 1;
         isPlayPressed = true;
+        lblStart.show(true);
         dino.setState(Dino.WALKING);
         Game.setState(Game.State.READY_TO_START);
     }
 
     public void restartGame() {
-        dino.setState(Dino.IDLE);
         Game.setState(Game.State.RESTART);
         forestX[0] = 0;
         forestX[1] = forestX[0] + forestImg.getWidth();
+        dino.resetPos();
+        for (Enemy enemy : enemyList) enemy.resetPosition();
+        startGame();
     }
 
     private void showRestartMenuWithDelay() {
@@ -96,29 +100,35 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     public void update() {
         dino.animate();
 
-        if (Game.isGameReadyToStart) {
-            if (!gameMenuPanel.isMenuVisible()) moveBackground(forestSpeed);
-        } else if (Game.isGameRunning) {
-            moveBackground(forestSpeed);
-            /* To move all the enemies */
-            for (Enemy enemy : enemyList) {
-                enemy.animate();
-                /* To check collision of all the enemies */
-                if (enemy.collision(dino.getY(), dino.getImageSize())
-                        && dino.getCurrentState() != Dino.DEATH) {
-                    gameSound.play(GameSound.TRACK.DEATH);
-                    dino.setState(Dino.DEATH);
-                    Game.setState(Game.State.OVER);
-                    return;
+        switch (Game.getCurrentState()) {
+            case Game.State.READY_TO_START -> {
+                if (!gameMenuPanel.isMenuVisible()) {
+                    moveBackground(forestSpeed);
                 }
-                if (enemy.isEnemyCrossed) continue;
-                enemy.move(forestSpeed);
-                break;
             }
-        } else if (Game.isGameRestart) {
-           // moveBackground(-3);
-        } else if (Game.isGameOver) {
-
+            case Game.State.RUNNING -> {
+                moveBackground(forestSpeed);
+                /* To move all the enemies */
+                for (Enemy enemy : enemyList) {
+                    enemy.animate();
+                    /* To check collision of all the enemies */
+                    if (enemy.collision(dino.getY(), dino.getImageSize()) && dino.getCurrentState() != Dino.DEATH) {
+                        gameSound.play(GameSound.TRACK.DEATH);
+                        dino.setState(Dino.DEATH);
+                        Game.setState(Game.State.OVER);
+                        return;
+                    }
+                    if (enemy.isEnemyCrossed) continue;
+                    enemy.move(forestSpeed);
+                    break;
+                }
+            }
+            case Game.State.RESTART -> {
+                for (Enemy enemy : enemyList) enemy.animate();
+            }
+            case PAUSED, OVER -> {
+            }
+            case null -> {/*System.out.println("Invalid state");*/}
         }
     }
 
@@ -136,8 +146,8 @@ public class GamePanel extends JPanel implements Inputs.Listener {
 
     @Override
     public void onSpaceBarPressed() {
+        //System.out.println(Game.getCurrentState() + "? " + isPlayPressed);
         if (!Game.isGameReadyToStart && !Game.isGameRunning) return; /* Only two game state where the dino can jump */
-
         if (isPlayPressed) {
             forestSpeed = 2;
             isPlayPressed = false;
@@ -146,7 +156,6 @@ public class GamePanel extends JPanel implements Inputs.Listener {
             Game.setState(Game.State.RUNNING);
             //gameSound.play(GameSound.TRACK.RUN);
         } else {
-            //counter = 0;
             dino.setState(Dino.JUMPING);
         }
     }
