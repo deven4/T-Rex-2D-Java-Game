@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class GamePanel extends JPanel implements Inputs.Listener {
 
@@ -17,16 +18,21 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     private boolean isPlayPressed;
     private final BufferedImage forestImg;
 
+    private final Assets assets;
     private final Dino dino;
     private final GameSound gameSound;
     private final GameLabel lblStart;
+    private final ArrayList<Enemy> enemies = new ArrayList<>();
     private final GameMenuPanel gameMenuPanel;
-    private final ArrayList<Enemy> enemyList = new ArrayList<>();
+    private final BufferedImage[][] enemiesGrp = new BufferedImage[2][];
+    private final Random random;
 
     public GamePanel() throws Exception {
         super();
+
         forestX = new int[2];
-        Assets assets = new Assets();
+        random = new Random();
+        assets = new Assets();
         dino = new Dino(assets.getDino());
         forestImg = new ForestBG().getBufferedImage()[1];
         gameSound = GameSound.getInstance();
@@ -34,10 +40,9 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         gameSound.play(GameSound.TRACK.GRASSLAND_THEME);
         lblStart = new GameLabel("Press space bar to start", Config.WIDTH / 2 - 150, 150);
 
+        initEnemies();
         forestX[1] = forestX[0] + forestImg.getWidth();
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
-        enemyList.add(new Enemy(assets.getSkeletonBombImages(), Config.WIDTH, Dino.Y_COORDINATE+20));
-        enemyList.add(new Enemy(assets.getCactus()));
         dino.setListener(this::showRestartMenuWithDelay);
         addKeyListener(new Inputs(this, null));
 
@@ -59,11 +64,11 @@ public class GamePanel extends JPanel implements Inputs.Listener {
     }
 
     public void restartGame() {
-        Game.setState(Game.State.RESTART);
         forestX[0] = 0;
         forestX[1] = forestX[0] + forestImg.getWidth();
+        initEnemies();
         dino.resetPos();
-        for (Enemy enemy : enemyList) enemy.resetPosition();
+        for (Enemy enemy : enemies) enemy.resetPosition();
         startGame();
     }
 
@@ -87,7 +92,7 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         g.drawImage(forestImg, forestX[1], 0, forestImg.getWidth(), Config.HEIGHT, this);
 
         dino.draw(g2d, this); /* Draw Dino */
-        for (Enemy enemy : enemyList) enemy.draw(g2d, this); /* Draw Cactus */
+        for (Enemy enemy : enemies) enemy.draw(g2d, this); /* Draw Enemies */
         g.setColor(Color.BLACK);
         lblStart.draw(g);
 
@@ -109,22 +114,28 @@ public class GamePanel extends JPanel implements Inputs.Listener {
             case Game.State.RUNNING -> {
                 moveBackground(forestSpeed);
                 /* To move all the enemies */
-                for (Enemy enemy : enemyList) {
-                    enemy.animate();
-                    /* To check collision of all the enemies */
-                    if (enemy.collision(dino.getY(), dino.getImageSize()) && dino.getCurrentState() != Dino.DEATH) {
+                for (int i = 0; i < enemies.size(); i++) {
+                    Enemy e = enemies.get(i);
+                    e.animate();
+                    e.update(forestSpeed);
+                    if (e.hasEnemyMovedOutOffScreen()) {
+                        enemies.remove(e);
+                        addEnemy(Config.WIDTH + getRandomSpacing());
+                        i--;
+                    } else if (e.collision(dino.getY(), dino.getImageSize()) && dino.getCurrentState() != Dino.DEATH) {
+                        /* To check collision of all the enemies */
                         gameSound.play(GameSound.TRACK.DEATH);
                         dino.setState(Dino.DEATH);
                         Game.setState(Game.State.OVER);
                         return;
                     }
-                    if (enemy.isEnemyCrossed) continue;
-                    enemy.move(forestSpeed);
-                    break;
                 }
+                System.out.println();
+                for (Enemy e : enemies) System.out.print(e.getTag() + " x:" + e.getX() + ",");
             }
             case Game.State.RESTART -> {
-                for (Enemy enemy : enemyList) enemy.animate();
+                System.out.println("anim");
+                for (Enemy enemy : enemies) enemy.animate();
             }
             case PAUSED, OVER -> {
             }
@@ -142,6 +153,48 @@ public class GamePanel extends JPanel implements Inputs.Listener {
         if (forestX[1] + forestImg.getWidth() <= 0) {
             forestX[1] = forestX[0] + forestImg.getWidth();
         }
+    }
+
+    private void initEnemies() {
+        enemies.clear();
+        enemiesGrp[0] = assets.getCactus();
+        enemiesGrp[1] = assets.getSkeletonBombImages();
+
+        int spawnX = Config.WIDTH;
+        for (int i = 0; i < 3; i++) {
+            addEnemy(spawnX);
+            spawnX += getRandomSpacing();
+        }
+        System.out.println("START");
+        for (Enemy e : enemies) System.out.print(e.getTag() + " x:" + e.getX() + ",");
+    }
+
+    private void addEnemy(int spawnX) {
+        int randomIdx = random.nextInt(enemiesGrp.length);
+        try {
+            Enemy enemy;
+            switch (randomIdx) {
+                case 1 -> {
+                    enemy = new Enemy(enemiesGrp[randomIdx], spawnX, Dino.Y_COORDINATE + 30);
+                    enemy.setTag("Bomb");
+                }
+                default -> {
+                    enemy = new Enemy(enemiesGrp[randomIdx], spawnX);
+                    enemy.setTag("Cactus");
+                }
+            }
+            enemies.add(enemy);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int getFarthestEnemyX() {
+        return enemies.stream().mapToInt(Enemy::getX).max().orElse(Config.WIDTH);
+    }
+
+    public int getRandomSpacing() {
+        return 300 + new Random().nextInt(150, 250); // 250–300 pixels
     }
 
     @Override
