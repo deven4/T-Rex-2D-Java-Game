@@ -3,7 +3,6 @@ package core;
 import utils.Config;
 
 import javax.swing.*;
-import java.util.Arrays;
 
 public class Game extends JFrame implements Runnable {
 
@@ -22,22 +21,14 @@ public class Game extends JFrame implements Runnable {
 
     public Game() {
         SwingUtilities.invokeLater(() -> {
-//            try {
-                gamePanel = new GamePanel();
-                add(gamePanel);
-                pack();
-                setVisible(true);
-                setResizable(false);
-                setLocationRelativeTo(null);
-                setDefaultCloseOperation(EXIT_ON_CLOSE);
-                startGame();
-//            } catch (Exception e) {
-//                // Log the error and stop the game
-//                System.err.println(Arrays.toString(e.getStackTrace()));
-//                JOptionPane.showMessageDialog(null, e.getMessage(),
-//                        "Error", JOptionPane.ERROR_MESSAGE);
-//                System.exit(1);
-//            }
+            gamePanel = new GamePanel();
+            setContentPane(gamePanel);
+            pack();
+            setVisible(true);
+            setResizable(false);
+            setLocationRelativeTo(null);
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
+            startGame();
         });
     }
 
@@ -133,3 +124,12 @@ public class Game extends JFrame implements Runnable {
         new Game();
     }
 }
+
+
+//            } catch (Exception e) {
+//                // Log the error and stop the game
+//                System.err.println(Arrays.toString(e.getStackTrace()));
+//                JOptionPane.showMessageDialog(null, e.getMessage(),
+//                        "Error", JOptionPane.ERROR_MESSAGE);
+//                System.exit(1);
+//            }

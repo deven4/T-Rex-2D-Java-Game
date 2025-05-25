@@ -4,27 +4,29 @@ import utils.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 public class GameMenuPanel extends JPanel {
 
-    private GameButton btnPlay;
-    private GameButton btnResume;
-    private GameButton btnRestart;
+    private boolean isMenuVisible;
+
+    private JPanel mPanel;
+    private JPanel optionsMenuPanel;
     private final GameFont gameFont;
     private final GamePanel gamePanel;
     private final GameSound gameSound;
-    private JPanel mainMenuPanel;
-    private JPanel optionsMenuPanel;
+    private final InputManager inputManager;
     private final Animate menuPanelAnimation;
-    private boolean isMenuVisible;
+    private GameButton btnPlay, btnResume, btnRestart, btnBackToMenu, btnOptions;
 
-    GameMenuPanel(GamePanel gamePanel) {
+    GameMenuPanel(GamePanel gamePanel, InputManager inputManager) {
         super();
 
         setOpaque(false);
         setLayout(null);
         setBackground(Color.LIGHT_GRAY);
         this.gamePanel = gamePanel;
+        this.inputManager = inputManager;
         this.gameFont = GameFont.getInstance();
         this.gameSound = GameSound.getInstance();
 
@@ -36,76 +38,64 @@ public class GameMenuPanel extends JPanel {
     }
 
     private void buildMainMenuPanel() {
-        mainMenuPanel = new JPanel();
-        mainMenuPanel.setOpaque(false);
-        mainMenuPanel.setName("Main Menu Panel");
-        mainMenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mPanel = new JPanel();
+        mPanel.setOpaque(false);
+        mPanel.setName("Main Menu Panel");
+        mPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        //mainMenuPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mPanel.setLayout(new BoxLayout(mPanel, BoxLayout.Y_AXIS));
 
         btnPlay = new GameButton("PLAY");
         btnResume = new GameButton("RESUME");
         btnRestart = new GameButton("RESTART");
-        GameButton btnOptions = new GameButton("OPTIONS");
+        btnBackToMenu = new GameButton("BACK TO MENU");
+        btnOptions = new GameButton("OPTIONS");
         GameButton btnExit = new GameButton("EXIT");
         GameSound gameSound = GameSound.getInstance();
 
         /* Add buttons to mainMenuPanel */
-        mainMenuPanel.add(btnPlay);
-        mainMenuPanel.add(Box.createVerticalStrut(10));
-        mainMenuPanel.add(btnResume);
-        mainMenuPanel.add(Box.createVerticalStrut(10));
-        mainMenuPanel.add(btnRestart);
-        mainMenuPanel.add(Box.createVerticalStrut(10));
-        mainMenuPanel.add(btnOptions);
-        mainMenuPanel.add(Box.createVerticalStrut(10));
-        mainMenuPanel.add(btnExit);
-
-        // mainMenuPanel.setBackground(new Color(255,255,255,150));
-        mainMenuPanel.setLayout(new BoxLayout(mainMenuPanel, BoxLayout.Y_AXIS));
-        mainMenuPanel.revalidate();
-        mainMenuPanel.setSize((int) mainMenuPanel.getPreferredSize().getWidth(),
-                (int) mainMenuPanel.getPreferredSize().getHeight());
-        add(mainMenuPanel);
-        btnResume.setVisible(false);
-        btnRestart.setVisible(false);
+        mPanel.add(btnPlay);
+        mPanel.add(btnOptions);
+        mPanel.add(btnExit);
+        revalidateMPanel();
+        add(mPanel);
 
         /* Add Action listeners */
-        btnPlay.addActionListener(_ -> {
+        btnPlay.setOnClickListener(_ -> {
             showMenu(Menu.NOMENU);
             gameSound.stop(GameSound.TRACK.INTRO);
             gamePanel.startGame();
         });
-        btnResume.addActionListener(_ -> {
+        btnResume.setOnClickListener(_ -> {
             isMenuVisible = false;
             Game.isGamePaused = false;
             menuPanelAnimation.start(Animate.HIDE);
             gamePanel.requestFocus();
             gameSound.stop(GameSound.TRACK.INTRO);
         });
-        btnRestart.addActionListener(e -> {
+        btnRestart.setOnClickListener(e -> {
             showMenu(Menu.NOMENU);
-            gamePanel.startGame();
             gamePanel.restartGame();
         });
+        btnBackToMenu.setOnClickListener(e -> showMenu(Menu.MAIN));
 
-        btnOptions.addActionListener(_ -> showMenu(Menu.OPTIONS));
-        btnExit.addActionListener(_ -> System.exit(0));
+        btnOptions.setOnClickListener(_ -> showMenu(Menu.OPTIONS));
+        btnExit.setOnClickListener(_ -> System.exit(0));
     }
 
     private void buildOptionMenuPanel() {
         optionsMenuPanel = new JPanel();
         optionsMenuPanel.setOpaque(false);
         optionsMenuPanel.setName("Options Menu Panel");
-        optionsMenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        Font font = GameFont.getInstance().getSuperDream().deriveFont(25f);
         GameButton btnBack = new GameButton("< BACK");
-        GameButton btnSound = new GameButton("SOUND", false);
-        GameButton btnSoundToggleL = new GameButton("<");
-        GameButton btnSoundToggleR = new GameButton(">");
-        GameButton btnCredits = new GameButton("CREDITS");
-        btnSound.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
-        btnSoundToggleL.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
-        btnSoundToggleR.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
-        btnCredits.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
+        GameButton btnSound = new GameButton("SOUND", false, font);
+        GameButton btnSoundToggleL = new GameButton("<", font);
+        GameButton btnSoundToggleR = new GameButton(">", font);
+        GameButton btnPlayer = new GameButton("PLAYER", false, font);
+        GameButton btnPlayerL = new GameButton("<", font);
+        GameButton btnPlayerR = new GameButton(">", font);
+        GameButton btnCredits = new GameButton("CREDITS", font);
 
         /* SubOptionMenu Panel */
         JPanel subOptionMenuPanel = new JPanel();
@@ -120,21 +110,40 @@ public class GameMenuPanel extends JPanel {
         gbc.gridx = 1;
         gbc.gridy = 0;
         subOptionMenuPanel.add(btnSoundToggleL, gbc);
-        JLabel label = new JLabel("ON ");
-        label.setFont(GameFont.getInstance().getSuperDream().deriveFont(35f));
+        JLabel lblOn_ = new JLabel("ON");
+        lblOn_.setFont(font);
+        lblOn_.setPreferredSize(new Dimension(80, 20));
+        lblOn_.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridx = 2;
         gbc.gridy = 0;
-        gbc.gridwidth = 1;
-        subOptionMenuPanel.add(label, gbc);
+        subOptionMenuPanel.add(lblOn_, gbc);
         gbc.gridx = 3;
         gbc.gridy = 0;
         subOptionMenuPanel.add(btnSoundToggleR, gbc);
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        subOptionMenuPanel.add(btnPlayer, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        subOptionMenuPanel.add(btnPlayerL, gbc);
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        JLabel lblPlayerSelection = new JLabel("T-REX");
+        lblPlayerSelection.setFont(font);
+        lblPlayerSelection.setPreferredSize(new Dimension(80, 20));
+        lblPlayerSelection.setHorizontalAlignment(SwingConstants.CENTER);
+        subOptionMenuPanel.add(lblPlayerSelection, gbc);
+        gbc.gridx = 3;
+        gbc.gridy = 1;
+        subOptionMenuPanel.add(btnPlayerR, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         subOptionMenuPanel.add(btnCredits, gbc);
-        btnSoundToggleL.addActionListener(_ -> soundPlayback(label));
-        btnSoundToggleR.addActionListener(_ -> soundPlayback(label));
+        btnSoundToggleL.setOnClickListener(_ -> soundPlayback(lblOn_));
+        btnSoundToggleR.setOnClickListener(_ -> soundPlayback(lblOn_));
+        btnPlayerL.setOnClickListener(_ -> changePlayer(lblPlayerSelection));
+        btnPlayerR.setOnClickListener(_ -> changePlayer(lblPlayerSelection));
 
         /* Credits Panel */
         JPanel creditParentPanel = new JPanel();
@@ -187,7 +196,6 @@ public class GameMenuPanel extends JPanel {
         }
         creditsPanel.setVisible(false);
         creditParentPanel.add(creditsPanel);
-        creditParentPanel.add(creditsPanel);
         Animate creditPanelAnimate = new Animate(creditsPanel);
 
         /* Option MENU */
@@ -208,7 +216,7 @@ public class GameMenuPanel extends JPanel {
         optionsMenuPanel.revalidate();
         add(optionsMenuPanel);
 
-        btnBack.addActionListener(_ -> {
+        btnBack.setOnClickListener(_ -> {
             if (creditsPanel.isVisible()) {
                 creditPanelAnimate.stop();
                 subOptionMenuPanel.setVisible(true);
@@ -216,7 +224,7 @@ public class GameMenuPanel extends JPanel {
                 recalculateSize();
             } else showMenu(Menu.MAIN);
         });
-        btnCredits.addActionListener(_ -> {
+        btnCredits.setOnClickListener(_ -> {
             subOptionMenuPanel.setVisible(false);
             creditsPanel.setVisible(true);
             creditPanelAnimate.start(Animate.SLIDE_DOWN);
@@ -224,38 +232,61 @@ public class GameMenuPanel extends JPanel {
         });
     }
 
+    private void changePlayer(JLabel lblPlayerSelection) {
+        if (lblPlayerSelection.getText().equals("T-REX")) {
+            lblPlayerSelection.setText("ROBO");
+        } else {
+            lblPlayerSelection.setText("T-REX");
+        }
+    }
+
     private void recalculateSize() {
-        int btnX = (int) (Config.WIDTH - Config.WIDTH * 0.40); // subtracting 40% from the gameBoard width
-        int btnY = (int) (Config.HEIGHT - Config.HEIGHT * 0.80) + 20;
-        optionsMenuPanel.setSize((int) optionsMenuPanel.getPreferredSize().getWidth(), (int) optionsMenuPanel.getPreferredSize().getHeight());
-        int width = Math.max(mainMenuPanel.getX() + mainMenuPanel.getWidth(), optionsMenuPanel.getX() + optionsMenuPanel.getWidth());
-        int height = Math.max(mainMenuPanel.getY() + mainMenuPanel.getHeight(), optionsMenuPanel.getY() + optionsMenuPanel.getHeight());
+        optionsMenuPanel.setSize((int) optionsMenuPanel.getPreferredSize().getWidth(),
+                (int) optionsMenuPanel.getPreferredSize().getHeight());
+        int width = Math.max(mPanel.getX() + mPanel.getWidth(), optionsMenuPanel.getX() + optionsMenuPanel.getWidth());
+        int height = Math.max(mPanel.getY() + mPanel.getHeight(), optionsMenuPanel.getY() + optionsMenuPanel.getHeight());
         setSize(width, height);
-        setLocation(btnX, btnY);
+        setLocation(Config.MENU_X, Config.MENU_Y);
         revalidate();
     }
 
     private void soundPlayback(JLabel label) {
         if (label.getText().equals("OFF")) {
             label.setText("ON ");
+            recalculateSize();
             gameSound.setSoundOn(true);
             gameSound.play(GameSound.TRACK.GRASSLAND_THEME);
         } else {
             label.setText("OFF");
+            recalculateSize();
             gameSound.setSoundOn(false);
             gameSound.stop(GameSound.TRACK.INTRO);
         }
     }
 
+    private void revalidateMPanel() {
+        mPanel.setSize((int) mPanel.getPreferredSize().getWidth(),
+                (int) mPanel.getPreferredSize().getHeight());
+        mPanel.repaint();
+        mPanel.revalidate();
+    }
+
     public void showMenu(Menu menu) {
         switch (menu) {
             case MAIN -> {
-                mainMenuPanel.setVisible(true);
-                optionsMenuPanel.setVisible(false);
+                mPanel.setVisible(true);
+                mPanel.remove(btnResume);
+                mPanel.remove(btnRestart);
+                mPanel.remove(btnBackToMenu);
+                mPanel.add(btnPlay, 0);
+                mPanel.add(btnOptions, 1);
+                revalidateMPanel();
+
                 isMenuVisible = true;
+                optionsMenuPanel.setVisible(false);
             }
             case OPTIONS -> {
-                mainMenuPanel.setVisible(false);
+                mPanel.setVisible(false);
                 optionsMenuPanel.setVisible(true);
                 isMenuVisible = true;
             }
@@ -265,24 +296,42 @@ public class GameMenuPanel extends JPanel {
                 isMenuVisible = false;
             }
             case PAUSE -> {
-                btnPlay.setVisible(false);
-                btnResume.setVisible(true);
-                mainMenuPanel.setVisible(true);
-                menuPanelAnimation.start(Animate.SLIDE_RIGHT);
+                mPanel.remove(btnPlay);
+                mPanel.remove(btnRestart);
+                mPanel.remove(btnOptions);
+                mPanel.add(btnResume, 0);
+                mPanel.add(btnBackToMenu, 1);
+                mPanel.setVisible(true);
+                revalidateMPanel();
+
                 isMenuVisible = true;
-            }
-            case RESUME -> {
-                btnPlay.setVisible(true);
-                btnResume.setVisible(false);
-                btnRestart.setVisible(false);
+                optionsMenuPanel.setVisible(false);
+                menuPanelAnimation.start(Animate.SLIDE_RIGHT);
             }
             case RESTART -> {
-                btnPlay.setVisible(false);
-                btnResume.setVisible(false);
-                btnRestart.setVisible(true);
-                mainMenuPanel.setVisible(true);
-                menuPanelAnimation.start(Animate.SLIDE_RIGHT);
+                mPanel.setVisible(true);
+                mPanel.remove(btnPlay);
+                mPanel.remove(btnResume);
+                mPanel.remove(btnOptions);
+                mPanel.add(btnRestart, 0);
+                mPanel.add(btnBackToMenu, 1);
+                revalidateMPanel();
+
                 isMenuVisible = true;
+                optionsMenuPanel.setVisible(false);
+                menuPanelAnimation.start(Animate.SLIDE_RIGHT);
+            }
+        }
+    }
+
+    public void update() {
+        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+            if (!Game.isGamePaused && Game.isGameRunning) {
+                Game.isGamePaused = true;
+                showMenu(GameMenuPanel.Menu.PAUSE);
+            } else if (Game.isGamePaused && Game.isGameRunning) {
+                Game.isGamePaused = false;
+                showMenu(GameMenuPanel.Menu.NOMENU);
             }
         }
     }
@@ -292,6 +341,6 @@ public class GameMenuPanel extends JPanel {
     }
 
     public enum Menu {
-        MAIN, OPTIONS, NOMENU, PAUSE, RESUME, RESTART
+        MAIN, OPTIONS, NOMENU, PAUSE, RESTART
     }
 }

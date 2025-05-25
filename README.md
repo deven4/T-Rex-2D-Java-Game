@@ -1,1 +1,1 @@
-T-Rex entites.Dino 2D core.Game made purely with Java
+T-Rex entites.Player 2D core.Game made purely with Java

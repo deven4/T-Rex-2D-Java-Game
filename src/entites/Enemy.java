@@ -5,7 +5,6 @@ import animations.AnimationManager;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Random;
 
 /**
  * IDLE animation should be there in all enemies
@@ -32,9 +31,9 @@ public class Enemy {
         animManager = new AnimationManager(type.name());
 
         switch (type) {
-            case CACTUS -> y = Dino.Y_COORDINATE + 10;
-            case SKELETON_BOMB -> y = Dino.Y_COORDINATE + 30;
-            default -> y = Dino.Y_COORDINATE;
+            case CACTUS -> y = Player.Y_COORDINATE + 10;
+            case SKELETON_BOMB -> y = Player.Y_COORDINATE + 30;
+            default -> y = Player.Y_COORDINATE;
         }
     }
 

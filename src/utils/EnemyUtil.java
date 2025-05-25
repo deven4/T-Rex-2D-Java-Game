@@ -1,9 +1,8 @@
 package utils;
 
 import core.Game;
-import entites.Dino;
+import entites.Player;
 import entites.Enemy;
-import entites.EnemyState;
 import entites.EnemyType;
 
 import java.awt.*;
@@ -36,20 +35,20 @@ public class EnemyUtil {
         return 300 + new Random().nextInt(150, 250); // 250–300 pixels
     }
 
-    public static void checkCollision(Dino dino, Enemy e) {
+    public static void checkCollision(Player player, Enemy e) {
         if (!e.isAlive() || e.isDying()) return;
 
-        if (dino.getBounds().intersects(e.getBounds())) {
-            Rectangle dinoBounds = dino.getBounds();
+        if (player.getBounds().intersects(e.getBounds())) {
+            Rectangle dinoBounds = player.getBounds();
             Rectangle enemyBounds = e.getBounds();
             System.out.println((dinoBounds.y + dinoBounds.height - 5) + " < " + enemyBounds.y);
-            boolean isJumpKill = dino.getVelocity() > 0;
+            boolean isJumpKill = player.getVelocity() > 0;
 
             if (isJumpKill && e.getType() == EnemyType.SKELETON_BOMB) {
                 e.die();
             } else {
                 GameSound.getInstance().play(GameSound.TRACK.DEATH);
-                dino.setState(Dino.DEATH);
+                player.setState(Player.DEATH);
                 Game.setState(Game.State.OVER);
             }
         }
