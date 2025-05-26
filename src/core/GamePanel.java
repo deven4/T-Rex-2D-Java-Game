@@ -2,6 +2,7 @@ package core;
 
 import entites.Enemy;
 import entites.Player;
+import entites.PlayerType;
 import loaders.Assets;
 import utils.*;
 
@@ -21,7 +22,8 @@ public class GamePanel extends JPanel {
     private int[] forestX;
     private BufferedImage levelBackground;
 
-    private Player player;
+    public Assets assets;
+    public Player player;
     private List<Enemy> enemies;
     private GameLabel lblStart;
     private GameMenuPanel gameMenuPanel;
@@ -44,7 +46,7 @@ public class GamePanel extends JPanel {
 
     public void init() {
         forestX = new int[2];
-        Assets assets = new Assets();
+        assets = new Assets();
         GameSound gameSound = GameSound.getInstance();
         player = new Player(assets.getDino());
         levelBackground = assets.getLevelBackground();
@@ -163,6 +165,13 @@ public class GamePanel extends JPanel {
             lblStart.show(false);
             Game.setState(Game.State.RUNNING);
             player.setState(Player.JUMPING);
+        }
+    }
+
+    public void changePlayer(PlayerType type) {
+        switch (type) {
+            case T_REX -> player = new Player(assets.getDino());
+            case ROBOT -> player = new Player(assets.getRobot(), 8);
         }
     }
 }

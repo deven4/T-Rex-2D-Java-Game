@@ -29,13 +29,17 @@ public class Assets {
 
     private void loadRobot() {
         robotAnimMap[Player.IDLE] = ImageLoader.loadFolderImg("/players/robot/idle");
+        robotAnimMap[Player.WALKING] = new BufferedImage[1];
+        robotAnimMap[Player.RUNNING] = new BufferedImage[1];
+        robotAnimMap[Player.JUMPING] = new BufferedImage[1];
+        robotAnimMap[Player.DEATH] = new BufferedImage[1];
     }
 
     public BufferedImage[][] getDino() {
         return dinoAnimMap;
     }
 
-    public BufferedImage[][] getRobotAnimMap() {
+    public BufferedImage[][] getRobot() {
         return robotAnimMap;
     }
 

@@ -1,5 +1,6 @@
 package core;
 
+import entites.PlayerType;
 import utils.*;
 
 import javax.swing.*;
@@ -73,12 +74,11 @@ public class GameMenuPanel extends JPanel {
             gamePanel.requestFocus();
             gameSound.stop(GameSound.TRACK.INTRO);
         });
-        btnRestart.setOnClickListener(e -> {
+        btnRestart.setOnClickListener(_ -> {
             showMenu(Menu.NOMENU);
             gamePanel.restartGame();
         });
-        btnBackToMenu.setOnClickListener(e -> showMenu(Menu.MAIN));
-
+        btnBackToMenu.setOnClickListener(_ -> showMenu(Menu.MAIN));
         btnOptions.setOnClickListener(_ -> showMenu(Menu.OPTIONS));
         btnExit.setOnClickListener(_ -> System.exit(0));
     }
@@ -235,8 +235,10 @@ public class GameMenuPanel extends JPanel {
     private void changePlayer(JLabel lblPlayerSelection) {
         if (lblPlayerSelection.getText().equals("T-REX")) {
             lblPlayerSelection.setText("ROBO");
+            gamePanel.changePlayer(PlayerType.ROBOT);
         } else {
             lblPlayerSelection.setText("T-REX");
+            gamePanel.changePlayer(PlayerType.T_REX);
         }
     }
 

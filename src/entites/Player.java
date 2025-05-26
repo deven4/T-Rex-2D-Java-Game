@@ -1,10 +1,8 @@
 package entites;
 
 import utils.Config;
-import utils.InputManager;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
@@ -20,7 +18,7 @@ public class Player {
     public static final int Y_COORDINATE = 360;
 
     private int dinoY;
-    private int velocity;
+    private int velocity = -22;
     private int currState;
     private int dinoImgIdx;
     private int counter = 0;
@@ -30,19 +28,21 @@ public class Player {
     private boolean isCollided;
     private boolean isJumpProgress;
 
-    private final BufferedImage[][] bufferedImage;
-    private final HashMap<Integer, Point[]> imageDimensions;
+    private final BufferedImage[][] images;
+    private HashMap<Integer, Point[]> imageDimensions;
 
     private PlayerListener listener;
 
-    public Player(BufferedImage[][] bufferedImage) {
-        velocity = -22;
-        animationSpeed = 12;
+    public Player(BufferedImage[][] images) {
+        this(images, 12);
+    }
+
+    public Player(BufferedImage[][] images, int animationSpeed) {
+        this.images = images;
+        this.animationSpeed = animationSpeed;
+
         currState = Player.IDLE;
         dinoY = Player.Y_COORDINATE;
-        imageDimensions = new HashMap<>();
-        this.bufferedImage = bufferedImage;
-
         calcImageDimensions();
     }
 
@@ -51,13 +51,13 @@ public class Player {
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.drawImage(bufferedImage[currState][dinoImgIdx], Player.X_COORDINATE, dinoY, c);
+        g2d.drawImage(images[currState][dinoImgIdx], Player.X_COORDINATE, dinoY, c);
 
         /* DEBUG: */
-        /* if (rectDino != null) {
-            g2d.setColor(Color.red);
-            g.drawRect(rectDino.x, rectDino.y, rectDino.width, rectDino.height);
-        }*/
+        g2d.setColor(Color.red);
+        // System.out.println(images[currState][dinoImgIdx]);
+        g2d.drawRect(Player.X_COORDINATE, dinoY, images[currState][dinoImgIdx].getWidth(),
+                images[currState][dinoImgIdx].getHeight());
     }
 
     public void update() {
@@ -104,15 +104,17 @@ public class Player {
     }
 
     private void calcImageDimensions() {
+        imageDimensions = new HashMap<>();
         /* Calculating the dimensions of the image of every state */
-        for (int state = 0; state < bufferedImage.length; state++) {
-            Point[] points = new Point[bufferedImage[state].length];
-            for (int image = 0; image < bufferedImage[state].length; image++) {
-                int imageWidth = bufferedImage[state][image].getWidth();
-                int imageHeight = bufferedImage[state][image].getHeight();
+        for (int state = 0; state < images.length; state++) {
+            Point[] points = new Point[images[state].length];
+            for (int image = 0; image < images[state].length; image++) {
+                System.out.println(state + "," + image);
+                int imageWidth = images[state][image].getWidth();
+                int imageHeight = images[state][image].getHeight();
                 points[image] = new Point(imageWidth, imageHeight);
             }
-            imageDimensions.computeIfAbsent(state, _ -> points);
+            imageDimensions.putIfAbsent(state, points);
         }
         /*
         for (Map.Entry<Integer, Point[]> entry : imageDimensions.entrySet()) {
@@ -144,11 +146,7 @@ public class Player {
     }
 
     public int getStateLength(int state) {
-        return bufferedImage[state].length;
-    }
-
-    public int getY() {
-        return dinoY;
+        return images[state].length;
     }
 
     public int getVelocity() {
