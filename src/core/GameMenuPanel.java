@@ -76,9 +76,13 @@ public class GameMenuPanel extends JPanel {
         });
         btnRestart.setOnClickListener(_ -> {
             showMenu(Menu.NOMENU);
-            gamePanel.restartGame();
+            gamePanel.resetPanel();
+            gamePanel.startGame();
         });
-        btnBackToMenu.setOnClickListener(_ -> showMenu(Menu.MAIN));
+        btnBackToMenu.setOnClickListener(_ -> {
+            gamePanel.resetPanel();
+            showMenu(Menu.MAIN);
+        });
         btnOptions.setOnClickListener(_ -> showMenu(Menu.OPTIONS));
         btnExit.setOnClickListener(_ -> System.exit(0));
     }
@@ -235,10 +239,10 @@ public class GameMenuPanel extends JPanel {
     private void changePlayer(JLabel lblPlayerSelection) {
         if (lblPlayerSelection.getText().equals("T-REX")) {
             lblPlayerSelection.setText("ROBO");
-            gamePanel.changePlayer(PlayerType.ROBOT);
+            gamePanel.switchPlayer(PlayerType.ROBOT);
         } else {
             lblPlayerSelection.setText("T-REX");
-            gamePanel.changePlayer(PlayerType.T_REX);
+            gamePanel.switchPlayer(PlayerType.T_REX);
         }
     }
 

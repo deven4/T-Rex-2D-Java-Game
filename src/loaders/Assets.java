@@ -29,10 +29,10 @@ public class Assets {
 
     private void loadRobot() {
         robotAnimMap[Player.IDLE] = ImageLoader.loadFolderImg("/players/robot/idle");
-        robotAnimMap[Player.WALKING] = new BufferedImage[1];
-        robotAnimMap[Player.RUNNING] = new BufferedImage[1];
-        robotAnimMap[Player.JUMPING] = new BufferedImage[1];
-        robotAnimMap[Player.DEATH] = new BufferedImage[1];
+        robotAnimMap[Player.WALKING] = ImageLoader.loadFolderImg("/players/robot/run");
+        robotAnimMap[Player.RUNNING] = ImageLoader.loadFolderImg("/players/robot/run");
+        robotAnimMap[Player.JUMPING] = ImageLoader.loadFolderImg("/players/robot/jump");
+        robotAnimMap[Player.DEATH] = ImageLoader.loadFolderImg("/players/robot/death");
     }
 
     public BufferedImage[][] getDino() {

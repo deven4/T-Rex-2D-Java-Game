@@ -17,7 +17,8 @@ public class Player {
     public static final int X_COORDINATE = Config.WIDTH / 4;
     public static final int Y_COORDINATE = 360;
 
-    private int dinoY;
+    private int jumpY;
+    private int y;
     private int velocity = -22;
     private int currState;
     private int dinoImgIdx;
@@ -34,15 +35,16 @@ public class Player {
     private PlayerListener listener;
 
     public Player(BufferedImage[][] images) {
-        this(images, 12);
+        this(images, 12, Player.Y_COORDINATE);
     }
 
-    public Player(BufferedImage[][] images, int animationSpeed) {
+    public Player(BufferedImage[][] images, int animationSpeed, int y) {
         this.images = images;
         this.animationSpeed = animationSpeed;
 
         currState = Player.IDLE;
-        dinoY = Player.Y_COORDINATE;
+        this.y = y;
+        this.jumpY = y;
         calcImageDimensions();
     }
 
@@ -51,13 +53,12 @@ public class Player {
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.drawImage(images[currState][dinoImgIdx], Player.X_COORDINATE, dinoY, c);
+        g2d.drawImage(images[currState][dinoImgIdx], Player.X_COORDINATE, jumpY, c);
 
         /* DEBUG: */
         g2d.setColor(Color.red);
         // System.out.println(images[currState][dinoImgIdx]);
-        g2d.drawRect(Player.X_COORDINATE, dinoY, images[currState][dinoImgIdx].getWidth(),
-                images[currState][dinoImgIdx].getHeight());
+
     }
 
     public void update() {
@@ -77,9 +78,9 @@ public class Player {
                         listener.onDeath();
                     }
                 }
-                if (!isJumpProgress) dinoY = Player.Y_COORDINATE;
+                if (!isJumpProgress) jumpY = y;
             } else {
-                if (currState == Player.DEATH) dinoY = Player.Y_COORDINATE;
+                if (currState == Player.DEATH) jumpY = y;
                 dinoImgIdx++;
             }
         }
@@ -88,16 +89,16 @@ public class Player {
     public void jump() {
         if (currState == Player.JUMPING) {
             isJumpProgress = true;
-            dinoY += velocity; // Update the position based on velocity
+            jumpY += velocity; // Update the position based on velocity
             velocity += 1; // Apply gravity to velocity
 
             // Check if the panel has reached or passed the initial Y position
-            if (dinoY >= Player.Y_COORDINATE) {
+            if (jumpY >= y) {
                 counter = 0;
                 dinoImgIdx = 0;
                 velocity = -22;
                 isJumpProgress = false;
-                dinoY = Player.Y_COORDINATE; // Set back to initial position
+                jumpY = y; // Set back to initial position
                 currState = Player.RUNNING; // Stop the animation
             }
         }
@@ -107,9 +108,9 @@ public class Player {
         imageDimensions = new HashMap<>();
         /* Calculating the dimensions of the image of every state */
         for (int state = 0; state < images.length; state++) {
+            if (images[state] == null) continue;
             Point[] points = new Point[images[state].length];
             for (int image = 0; image < images[state].length; image++) {
-                System.out.println(state + "," + image);
                 int imageWidth = images[state][image].getWidth();
                 int imageHeight = images[state][image].getHeight();
                 points[image] = new Point(imageWidth, imageHeight);
@@ -140,7 +141,7 @@ public class Player {
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(Player.X_COORDINATE + 10, dinoY,
+        return new Rectangle(Player.X_COORDINATE + 10, jumpY,
                 imageDimensions.get(currState)[dinoImgIdx].x - 20,
                 imageDimensions.get(currState)[dinoImgIdx].y - 10);
     }

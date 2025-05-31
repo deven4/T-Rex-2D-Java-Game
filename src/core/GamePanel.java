@@ -48,7 +48,6 @@ public class GamePanel extends JPanel {
         forestX = new int[2];
         assets = new Assets();
         GameSound gameSound = GameSound.getInstance();
-        player = new Player(assets.getDino());
         levelBackground = assets.getLevelBackground();
         gameMenuPanel = new GameMenuPanel(this, inputManager);
         gameSound.play(GameSound.TRACK.GRASSLAND_THEME);
@@ -57,14 +56,8 @@ public class GamePanel extends JPanel {
         enemies = EnemyUtil.initEnemies();
         forestX[1] = forestX[0] + levelBackground.getWidth();
         gameMenuPanel.showMenu(GameMenuPanel.Menu.MAIN);
-        player.setListener(() -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            gameMenuPanel.showMenu(GameMenuPanel.Menu.RESTART);
-        });
+
+        switchPlayer(PlayerType.T_REX);
     }
 
     public void startGame() {
@@ -76,13 +69,12 @@ public class GamePanel extends JPanel {
         Game.setState(Game.State.READY_TO_START);
     }
 
-    public void restartGame() {
+    public void resetPanel() {
         enemies = EnemyUtil.initEnemies();
         forestX[0] = 0;
         forestX[1] = forestX[0] + levelBackground.getWidth();
         player.resetPos();
         player.setState(Player.IDLE);
-        startGame();
     }
 
     @Override
@@ -168,10 +160,19 @@ public class GamePanel extends JPanel {
         }
     }
 
-    public void changePlayer(PlayerType type) {
+    public void switchPlayer(PlayerType type) {
         switch (type) {
             case T_REX -> player = new Player(assets.getDino());
-            case ROBOT -> player = new Player(assets.getRobot(), 8);
+            case ROBOT -> player = new Player(assets.getRobot(), 8, Player.Y_COORDINATE + 10);
         }
+
+        player.setListener(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            gameMenuPanel.showMenu(GameMenuPanel.Menu.RESTART);
+        });
     }
 }
