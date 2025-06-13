@@ -18,7 +18,7 @@ public class Player {
     public static final int Y_COORDINATE = 360;
 
     private int jumpY;
-    private int y;
+    private final int y;
     private int velocity = -22;
     private int currState;
     private int dinoImgIdx;
@@ -35,7 +35,7 @@ public class Player {
     private PlayerListener listener;
 
     public Player(BufferedImage[][] images) {
-        this(images, 12, Player.Y_COORDINATE);
+        this(images, 11, Player.Y_COORDINATE);
     }
 
     public Player(BufferedImage[][] images, int animationSpeed, int y) {
@@ -58,7 +58,6 @@ public class Player {
         /* DEBUG: */
         g2d.setColor(Color.red);
         // System.out.println(images[currState][dinoImgIdx]);
-
     }
 
     public void update() {

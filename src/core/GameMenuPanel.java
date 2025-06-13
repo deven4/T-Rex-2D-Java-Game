@@ -16,7 +16,6 @@ public class GameMenuPanel extends JPanel {
     private final GameFont gameFont;
     private final GamePanel gamePanel;
     private final GameSound gameSound;
-    private final InputManager inputManager;
     private final Animate menuPanelAnimation;
     private GameButton btnPlay, btnResume, btnRestart, btnBackToMenu, btnOptions;
 
@@ -27,7 +26,6 @@ public class GameMenuPanel extends JPanel {
         setLayout(null);
         setBackground(Color.LIGHT_GRAY);
         this.gamePanel = gamePanel;
-        this.inputManager = inputManager;
         this.gameFont = GameFont.getInstance();
         this.gameSound = GameSound.getInstance();
 
@@ -69,7 +67,7 @@ public class GameMenuPanel extends JPanel {
         });
         btnResume.setOnClickListener(_ -> {
             isMenuVisible = false;
-            Game.isGamePaused = false;
+            Game.setState(Game.State.RUNNING);
             menuPanelAnimation.start(Animate.HIDE);
             gamePanel.requestFocus();
             gameSound.stop(GameSound.TRACK.INTRO);
@@ -326,18 +324,6 @@ public class GameMenuPanel extends JPanel {
                 isMenuVisible = true;
                 optionsMenuPanel.setVisible(false);
                 menuPanelAnimation.start(Animate.SLIDE_RIGHT);
-            }
-        }
-    }
-
-    public void update() {
-        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
-            if (!Game.isGamePaused && Game.isGameRunning) {
-                Game.isGamePaused = true;
-                showMenu(GameMenuPanel.Menu.PAUSE);
-            } else if (Game.isGamePaused && Game.isGameRunning) {
-                Game.isGamePaused = false;
-                showMenu(GameMenuPanel.Menu.NOMENU);
             }
         }
     }

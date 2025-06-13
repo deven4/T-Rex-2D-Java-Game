@@ -7,17 +7,12 @@ import javax.swing.*;
 public class Game extends JFrame implements Runnable {
 
     public enum State {
-        READY_TO_START, RUNNING, PAUSED, RESTART, OVER
+        START, READY_TO_RUN, RUNNING, PAUSED, RESTART, OVER
     }
-
-    public static boolean isGameOver;
-    public static boolean isGamePaused;
-    public static boolean isGameRunning;
-    public static boolean isGameRestart;
-    public static boolean isGameReadyToStart;
 
     private GamePanel gamePanel;
     private boolean isGameLoopRunning;
+    private static State currState = State.START;
 
     public Game() {
         SwingUtilities.invokeLater(() -> {
@@ -49,10 +44,9 @@ public class Game extends JFrame implements Runnable {
             currNano = System.nanoTime();
             if (currNano - lastFrame >= timePerFrame) {
                 frames++;
-                if (!isGamePaused) {
-                    gamePanel.update();            // <-- critical for animation/movement
-                    gamePanel.repaint();      // draw the updated state
-                }
+                gamePanel.update();            // <-- critical for animation/movement
+                gamePanel.repaint();      // draw the updated state
+
                 lastFrame = currNano;
             }
 
@@ -71,53 +65,16 @@ public class Game extends JFrame implements Runnable {
         }
     }
 
-    public static void setState(State gameState) {
-        switch (gameState) {
-            case READY_TO_START -> {
-                isGameOver = false;
-                isGamePaused = false;
-                isGameRunning = false;
-                isGameRestart = false;
-                isGameReadyToStart = true;
-            }
-            case RUNNING -> {
-                isGameOver = false;
-                isGamePaused = false;
-                isGameRestart = false;
-                isGameReadyToStart = false;
-                isGameRunning = true;
-            }
-            case PAUSED -> {
-                isGameOver = false;
-                isGameRunning = false;
-                isGameRestart = false;
-                isGameReadyToStart = false;
-                isGamePaused = true;
-            }
-            case RESTART -> {
-                isGameOver = false;
-                isGamePaused = false;
-                isGameRunning = false;
-                isGameReadyToStart = false;
-                isGameRestart = true;
-            }
-            case OVER -> {
-                isGamePaused = false;
-                isGameRunning = false;
-                isGameRestart = false;
-                isGameReadyToStart = false;
-                isGameOver = true;
-            }
-        }
+    public static void setState(State state) {
+        currState = state;
     }
 
-    public static State getCurrentState() {
-        if (isGameReadyToStart) return State.READY_TO_START;
-        if (isGameRunning) return State.RUNNING;
-        if (isGamePaused) return State.PAUSED;
-        if (isGameRestart) return State.RESTART;
-        if (isGameOver) return State.OVER;
-        return null;
+    public static State getCurrState() {
+        return currState;
+    }
+
+    public static boolean isState(State state) {
+        return getCurrState() == state;
     }
 
     public static void main(String[] args) {

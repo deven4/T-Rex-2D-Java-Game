@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+import static core.Game.State.READY_TO_RUN;
+import static core.Game.State.START;
 import static utils.EnemyUtil.getRandomSpacing;
 
 public class GamePanel extends JPanel {
@@ -66,7 +68,7 @@ public class GamePanel extends JPanel {
         forestSpeed = 1;
         lblStart.show(true);
         player.setState(Player.WALKING);
-        Game.setState(Game.State.READY_TO_START);
+        Game.setState(READY_TO_RUN);
     }
 
     public void resetPanel() {
@@ -75,6 +77,7 @@ public class GamePanel extends JPanel {
         forestX[1] = forestX[0] + levelBackground.getWidth();
         player.resetPos();
         player.setState(Player.IDLE);
+        Game.setState(START);
     }
 
     @Override
@@ -102,18 +105,21 @@ public class GamePanel extends JPanel {
     }
 
     public void update() {
-        player.update();
-        gameMenuPanel.update();
+        System.out.println(Game.getCurrState());
 
-        switch (Game.getCurrentState()) {
-            case Game.State.READY_TO_START -> {
+        switch (Game.getCurrState()) {
+            case START, OVER -> player.update();
+            case READY_TO_RUN -> {
+                player.update();
                 if (!gameMenuPanel.isMenuVisible()) {
                     moveBackground(forestSpeed);
                     checkSpaceBarClick();
                 }
             }
-            case Game.State.RUNNING -> {
+            case RUNNING -> {
+                player.update();
                 checkSpaceBarClick();
+                checkEscapeClicked();
                 moveBackground(forestSpeed);
                 /* To move all the enemies */
                 for (int i = 0; i < enemies.size(); i++) {
@@ -128,12 +134,11 @@ public class GamePanel extends JPanel {
                     }
                 }
             }
-            case Game.State.RESTART -> {
+            case PAUSED -> {
+            }
+            case RESTART -> {
 
             }
-            case PAUSED, OVER -> {
-            }
-            case null -> {}
         }
     }
 
@@ -149,9 +154,23 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkEscapeClicked() {
+        if (!Game.isState(Game.State.RUNNING) && !Game.isState(Game.State.PAUSED)) return;
+
+        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+            if (Game.isState(Game.State.RUNNING)) {
+                Game.setState(Game.State.PAUSED);
+                gameMenuPanel.showMenu(GameMenuPanel.Menu.PAUSE);
+            } else if (Game.isState(Game.State.PAUSED)) {
+                Game.setState(Game.State.RUNNING);
+                gameMenuPanel.showMenu(GameMenuPanel.Menu.NOMENU);
+            }
+        }
+    }
+
     private void checkSpaceBarClick() {
         /* Only two game state where the dino can jump */
-        if (!Game.isGameReadyToStart && !Game.isGameRunning) return;
+        if (!Game.isState(READY_TO_RUN) && !Game.isState(Game.State.RUNNING)) return;
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
             forestSpeed = 2;
             lblStart.show(false);

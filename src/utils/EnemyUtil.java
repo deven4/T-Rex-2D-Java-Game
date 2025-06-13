@@ -41,7 +41,7 @@ public class EnemyUtil {
         if (player.getBounds().intersects(e.getBounds())) {
             Rectangle dinoBounds = player.getBounds();
             Rectangle enemyBounds = e.getBounds();
-            System.out.println((dinoBounds.y + dinoBounds.height - 5) + " < " + enemyBounds.y);
+            //System.out.println((dinoBounds.y + dinoBounds.height - 5) + " < " + enemyBounds.y);
             boolean isJumpKill = player.getVelocity() > 0;
 
             if (isJumpKill && e.getType() == EnemyType.SKELETON_BOMB) {
